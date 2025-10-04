@@ -1,0 +1,161 @@
+/* Full background */
+body {
+  margin: 0;
+  font-family: 'Arial', sans-serif;
+  background-color: #d8c4a1; /* light brown */
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  padding: 0;
+}
+
+/* Background container to center content */
+.background-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+/* App container with side walls only */
+.app-container {
+  position: relative;
+  width: 80%;             
+  max-width: 360px;       
+  background-color: #f5ecd9; 
+  border-left: 15%;       
+  border-right: 15%;
+  padding: 20px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* top, middle, bottom */
+  min-height: 100vh;
+}
+
+/* Top section: header */
+.app-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.header-image {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  margin-bottom: 30px; /* added more space between image and title */
+}
+
+.app-title {
+  font-size: 1.8rem;  
+  color: #333;
+  margin: 0;
+  text-align: center;
+}
+
+/* Middle section: menu buttons */
+.menu-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; 
+  gap: 30px;           /* updated gap between buttons */
+  height: 45vh;        /* shift buttons slightly upward */
+  width: 100%;
+  align-items: center;
+}
+
+.menu-item {
+  width: 100%;
+  height: 60px;        
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  font-size: 1.3rem;   
+  text-decoration: none;
+  color: black;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.menu-item:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+}
+
+.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Bottom section: footer buttons */
+.footer {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 20px;
+}
+
+/* Footer buttons (Options + Support) */
+.footer-button {
+  background: #ffdddd;
+  border: none;
+  border-radius: 15px;
+  padding: 10px 20px;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 130px;  /* ensures both buttons match width */
+}
+
+.footer-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 5px 10px rgba(0,0,0,0.25);
+}
+
+.support-button {
+  background: #ffdddd;
+}
+
+/* Decorative hand-drawn flower */
+.left-flower {
+  position: absolute;
+  top: 50px;      
+  left: 0;
+  width: 25%;     
+  height: auto;
+  pointer-events: none;
+}
+
+/* Responsive tweaks */
+@media (max-width: 400px) {
+  .menu-container {
+    gap: 20px;
+  }
+
+  .app-title {
+    font-size: 1.5rem;
+  }
+
+  .menu-item {
+    height: 50px;
+    font-size: 1.1rem;
+  }
+
+  .header-image {
+    width: 60px;
+    height: 60px;
+  }
+
+  .footer-button {
+    font-size: 0.9rem;
+    padding: 5px 12px;
+    min-width: 60px;
+  }
+}
