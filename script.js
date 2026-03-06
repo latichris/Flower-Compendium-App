@@ -198,13 +198,21 @@ if (menuIconEl) {
       exitSearchMode();
     } else {
       toggleMenu();
-      const overlay = document.getElementById('overlay');
-      if (overlay) overlay.addEventListener('click', () => {
-        toggleMenu();
-        unlockScroll();
-      });
     }
   };
+}
+
+// Overlay click always closes sidebar cleanly
+const sidebarOverlay = document.getElementById('overlay');
+if (sidebarOverlay) {
+  sidebarOverlay.addEventListener('click', () => {
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar && sidebar.classList.contains('active')) {
+      sidebar.classList.remove('active');
+      sidebarOverlay.classList.remove('active');
+      unlockScroll();
+    }
+  });
 }
 
 if (menuDotsEl) {
