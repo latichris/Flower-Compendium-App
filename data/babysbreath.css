@@ -1,0 +1,6 @@
+.babysbreath-theme {
+  --primary: #c9e4f2;       /* lighter violet — good for header gradient start */
+  --accent: #e8f3f8; /* deep purple — good for header gradient end */
+  --background-deep: #a5cce2; /* very soft lavender background */
+}
+

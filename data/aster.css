@@ -1,0 +1,6 @@
+.aster-theme {
+  --primary: #b583ca;       /* lighter violet — good for header gradient start */
+  --accent: #e8d8ef; /* deep purple — good for header gradient end */
+  --background-deep: #9b6ba1; /* very soft lavender background */
+}
+

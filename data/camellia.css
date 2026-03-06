@@ -1,0 +1,6 @@
+.camellia-theme {
+  --primary: #f2a9b8;       /* lighter violet — good for header gradient start */
+  --accent: #f8d6dc; /* deep purple — good for header gradient end */
+  --background-deep: #e68796; /* very soft lavender background */
+}
+

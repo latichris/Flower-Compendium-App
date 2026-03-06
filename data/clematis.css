@@ -1,0 +1,6 @@
+.clematis-theme {
+  --primary: #c3a5e6;       /* lighter violet — good for header gradient start */
+  --accent: #e5d8f5; /* deep purple — good for header gradient end */
+  --background-deep: #a181c9; /* very soft lavender background */
+}
+

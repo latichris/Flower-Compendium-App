@@ -1,0 +1,6 @@
+.buttercup-theme {
+  --primary: #f2d45c;       /* lighter violet — good for header gradient start */
+  --accent: #f8e6a0; /* deep purple — good for header gradient end */
+  --background-deep: #e6b93c; /* very soft lavender background */
+}
+

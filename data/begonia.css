@@ -1,0 +1,6 @@
+.begonia-theme {
+  --primary: #f2a97b;       /* lighter violet — good for header gradient start */
+  --accent: #f6c7a6; /* deep purple — good for header gradient end */
+  --background-deep: #e68a59; /* very soft lavender background */
+}
+

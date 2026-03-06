@@ -1,0 +1,6 @@
+.clover-theme {
+  --primary: #bfe3c5;       /* lighter violet — good for header gradient start */
+  --accent: #e4f2e9; /* deep purple — good for header gradient end */
+  --background-deep: #91cba3; /* very soft lavender background */
+}
+

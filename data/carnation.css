@@ -1,0 +1,6 @@
+.carnation-theme {
+  --primary: #e88b8b;       /* lighter violet — good for header gradient start */
+  --accent: #f2c3c0; /* deep purple — good for header gradient end */
+  --background-deep: #cc6b6b; /* very soft lavender background */
+}
+

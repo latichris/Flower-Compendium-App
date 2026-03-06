@@ -1,0 +1,6 @@
+.chrysanthemum-theme {
+  --primary: #ebc14d;       /* lighter violet — good for header gradient start */
+  --accent: #f7e1a3; /* deep purple — good for header gradient end */
+  --background-deep: #d79b2d; /* very soft lavender background */
+}
+
