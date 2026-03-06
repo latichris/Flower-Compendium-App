@@ -661,5 +661,6 @@ body.transitioning main { opacity: 0.3; transition: opacity 0.3s ease; }
 
 body.locked {
   overflow: hidden;
-  touch-action: none;
+  position: fixed;
+  width: 100%;
 }

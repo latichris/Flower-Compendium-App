@@ -5,6 +5,21 @@ const bodyEl = document.body;
 const topbar = document.querySelector('.topbar');
 const catalogue = document.querySelector('.catalogue');
 
+/* ---------------- Scroll Lock ---------------- */
+let savedScrollY = 0;
+
+function lockScroll() {
+  savedScrollY = window.scrollY;
+  document.body.style.top = `-${savedScrollY}px`;
+  document.body.classList.add('locked');
+}
+
+function unlockScroll() {
+  document.body.classList.remove('locked');
+  document.body.style.top = '';
+  window.scrollTo(0, savedScrollY);
+}
+
 /* ---------------- Sidebar ---------------- */
 function toggleMenu() {
   const sidebar = document.getElementById('sidebar');
@@ -13,7 +28,7 @@ function toggleMenu() {
   const isOpening = !sidebar.classList.contains('active');
   sidebar.classList.toggle('active');
   overlay.classList.toggle('active');
-  document.body.classList.toggle('locked', isOpening);
+  if (isOpening) lockScroll(); else unlockScroll();
 }
 
 /* ---------------- Filter Options ---------------- */
@@ -186,7 +201,7 @@ if (menuIconEl) {
       const overlay = document.getElementById('overlay');
       if (overlay) overlay.addEventListener('click', () => {
         toggleMenu();
-        document.body.classList.remove('locked');
+        unlockScroll();
       });
     }
   };
@@ -357,7 +372,7 @@ async function showFlowerContent(htmlString, flowerName) {
 
   // Always raise flower page above identifier panel when opened
   flowerPage.style.zIndex = '10002';
-  document.body.classList.add('locked');
+  lockScroll();
 
   void flowerPage.offsetWidth;
   flowerPage.classList.add('active', 'slide-in');
@@ -372,10 +387,10 @@ async function showFlowerContent(htmlString, flowerName) {
         flowerPage.innerHTML = '';
         flowerPage.classList.remove('active', 'slide-out');
         flowerPage.style.backgroundColor = '';
-        flowerPage.style.zIndex = ''; // reset — goes back behind identifier panel
+        flowerPage.style.zIndex = '';
         if (topbar) topbar.style.zIndex = '';
         if (catalogue) catalogue.style.visibility = 'visible';
-        document.body.classList.remove('locked');
+        unlockScroll();
       }, 450);
     }, { once: true });
   }
@@ -663,7 +678,7 @@ async function inferenceLoop() {
 
 cameraLink.addEventListener("click", async () => {
   identifierPanel.style.display = "flex";
-  document.body.classList.add('locked');
+  lockScroll();
   hideResultCard();
   inferenceCanvas.style.display = "none";
   cameraVideo.style.display     = "block";
@@ -675,7 +690,7 @@ cameraLink.addEventListener("click", async () => {
 
 closeIdentifier.addEventListener("click", () => {
   identifierPanel.style.display = "none";
-  document.body.classList.remove('locked');
+  unlockScroll();
   stopCamera();
   hideResultCard();
   setGlow('none');
@@ -690,7 +705,7 @@ resultScanAgain.addEventListener("click", resetScan);
 
 resultCloseBtn.addEventListener("click", () => {
   identifierPanel.style.display = "none";
-  document.body.classList.remove('locked');
+  unlockScroll();
   stopCamera();
   hideResultCard();
   inferenceCanvas.style.display = "none";
