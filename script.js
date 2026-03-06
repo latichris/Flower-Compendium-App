@@ -1,39 +1,21 @@
 /* script.js */
 
+document.addEventListener('DOMContentLoaded', () => {
+
 const flowerPage = document.getElementById('flowerPage');
 const bodyEl = document.body;
 const topbar = document.querySelector('.topbar');
 const catalogue = document.querySelector('.catalogue');
-
-/* ---------------- Scroll Lock ---------------- */
-let savedScrollY = 0;
-
-function lockScroll() {
-  savedScrollY = window.scrollY || document.documentElement.scrollTop;
-  document.body.style.top = `-${savedScrollY}px`;
-  document.body.classList.add('locked');
-}
-
-function unlockScroll() {
-  const scrollY = parseInt(document.body.style.top || '0') * -1;
-  document.body.classList.remove('locked');
-  document.body.style.top = '';
-  window.scrollTo(0, scrollY);
-  savedScrollY = scrollY;
-}
 
 /* ---------------- Sidebar ---------------- */
 function toggleMenu() {
   const sidebar = document.getElementById('sidebar');
   const overlay = document.getElementById('overlay');
   if (!sidebar || !overlay) return;
-  const isOpening = !sidebar.classList.contains('active');
   sidebar.classList.toggle('active');
   overlay.classList.toggle('active');
-  if (isOpening) lockScroll(); else unlockScroll();
 }
 
-// Overlay click always closes sidebar cleanly
 const sidebarOverlay = document.getElementById('overlay');
 if (sidebarOverlay) {
   sidebarOverlay.addEventListener('click', () => {
@@ -41,7 +23,6 @@ if (sidebarOverlay) {
     if (sidebar && sidebar.classList.contains('active')) {
       sidebar.classList.remove('active');
       sidebarOverlay.classList.remove('active');
-      unlockScroll();
     }
   });
 }
@@ -75,6 +56,7 @@ let activeFilters = { meaning: new Set(), colour: new Set() };
 /* ---------------- Bottom Sheet ---------------- */
 const bottomSheet = document.getElementById("bottomSheet");
 const bottomOverlay = document.getElementById("bottomSheetOverlay");
+const filterMenu = document.getElementById('filterMenu');
 
 function openBottomSheet() {
   bottomSheet.style.bottom = "0";
@@ -148,7 +130,6 @@ document.getElementById("filterResetButton").addEventListener("click", () => {
 /* ---------------- Search Mode ---------------- */
 const menuIconEl = document.getElementById('menuIcon');
 const menuDotsEl = document.getElementById('menuDots');
-const filterMenu = document.getElementById('filterMenu');
 const filterNameBtn = document.getElementById('filterNameButton');
 const topbarTitleEl = document.querySelector('.topbar-title');
 const topbarSearchEl = document.getElementById('topbarSearch');
@@ -187,11 +168,11 @@ function exitSearchMode() {
     if (menuIconEl.dataset.prev) menuIconEl.innerHTML = menuIconEl.dataset.prev;
     menuIconEl.classList.remove('search-back');
   }
-  const catalogue = document.querySelector('.catalogue');
-  if (catalogue) {
+  const cat = document.querySelector('.catalogue');
+  if (cat) {
     const overlay = document.createElement('div');
     overlay.className = 'catalogue-flash-overlay';
-    catalogue.appendChild(overlay);
+    cat.appendChild(overlay);
     setTimeout(() => overlay.remove(), 400);
   }
   document.querySelectorAll('.flower-card').forEach(c => c.style.display = '');
@@ -215,19 +196,6 @@ if (menuIconEl) {
       toggleMenu();
     }
   };
-}
-
-// Overlay click always closes sidebar cleanly
-const sidebarOverlay = document.getElementById('overlay');
-if (sidebarOverlay) {
-  sidebarOverlay.addEventListener('click', () => {
-    const sidebar = document.getElementById('sidebar');
-    if (sidebar && sidebar.classList.contains('active')) {
-      sidebar.classList.remove('active');
-      sidebarOverlay.classList.remove('active');
-      unlockScroll();
-    }
-  });
 }
 
 if (menuDotsEl) {
@@ -393,9 +361,7 @@ async function showFlowerContent(htmlString, flowerName) {
   if (topbar) topbar.style.zIndex = '0';
   if (catalogue) catalogue.style.visibility = 'hidden';
 
-  // Always raise flower page above identifier panel when opened
   flowerPage.style.zIndex = '10002';
-  lockScroll();
 
   void flowerPage.offsetWidth;
   flowerPage.classList.add('active', 'slide-in');
@@ -413,7 +379,6 @@ async function showFlowerContent(htmlString, flowerName) {
         flowerPage.style.zIndex = '';
         if (topbar) topbar.style.zIndex = '';
         if (catalogue) catalogue.style.visibility = 'visible';
-        unlockScroll();
       }, 450);
     }, { once: true });
   }
@@ -479,7 +444,7 @@ function fadeAudio(targetVolume, callback) {
 toggleMusicBtn.addEventListener("click", () => {
   if (!musicOn) {
     musicOn = true;
-    toggleMusicBtn.textContent = "Mute music";
+    toggleMusicBtn.textContent = "Mute music…";
     music.currentTime = 0;
     music.play().then(() => { fadeAudio(1); }).catch(() => {
       document.body.addEventListener("click", userStart);
@@ -487,7 +452,7 @@ toggleMusicBtn.addEventListener("click", () => {
   } else {
     fadeAudio(0, () => { music.pause(); music.currentTime = 0; });
     musicOn = false;
-    toggleMusicBtn.textContent = "Play music";
+    toggleMusicBtn.textContent = "Play music…";
   }
 });
 
@@ -495,7 +460,7 @@ function userStart() {
   music.play();
   fadeAudio(1);
   musicOn = true;
-  toggleMusicBtn.textContent = "Mute music";
+  toggleMusicBtn.textContent = "Mute music…";
   document.body.removeEventListener("click", userStart);
 }
 
@@ -527,9 +492,8 @@ const resultScanAgain  = document.getElementById("resultCardScanAgain");
 const resultCloseBtn   = document.getElementById("resultCardClose");
 const cameraGlow       = document.getElementById("cameraGlow");
 
-// No-result handling
 let lowConfidenceStreak = 0;
-const LOW_CONF_LIMIT = 20; // ~10 seconds at 500ms intervals
+const LOW_CONF_LIMIT = 20;
 let noResultShown = false;
 
 async function loadFlowerModel() {
@@ -642,7 +606,6 @@ function stopCamera() {
 }
 
 function setGlow(level) {
-  // level: 'none' | 'tentative' | 'strong'
   cameraGlow.classList.remove('tentative', 'tentative-strong');
   if (level === 'tentative') cameraGlow.classList.add('tentative');
   else if (level === 'strong') cameraGlow.classList.add('tentative-strong');
@@ -659,28 +622,24 @@ async function inferenceLoop() {
       isInferring = false;
       return;
     } else if (top3 && top3[0].confidence > 0.6) {
-      // Strong tentative — close to locking
       scanHint.textContent = `Maybe ${top3[0].flower}…`;
       scanHint.className = 'scan-hint-bar tentative';
       setGlow('strong');
       lowConfidenceStreak = 0;
       noResultShown = false;
     } else if (top3 && top3[0].confidence > 0.4) {
-      // Weak tentative
       scanHint.textContent = `Maybe ${top3[0].flower}…`;
       scanHint.className = 'scan-hint-bar tentative';
       setGlow('tentative');
       lowConfidenceStreak = 0;
       noResultShown = false;
     } else {
-      // Nothing detected
       setGlow('none');
       lowConfidenceStreak++;
       if (lowConfidenceStreak >= LOW_CONF_LIMIT && !noResultShown) {
         noResultShown = true;
         scanHint.textContent = "Try moving closer, or improve the light 🌿";
         scanHint.className = 'scan-hint-bar no-result';
-        // Reset message after 4 seconds
         setTimeout(() => {
           if (!isLocked) {
             scanHint.textContent = "Point the camera at a flower 🌸";
@@ -701,7 +660,6 @@ async function inferenceLoop() {
 
 cameraLink.addEventListener("click", async () => {
   identifierPanel.style.display = "flex";
-  lockScroll();
   hideResultCard();
   inferenceCanvas.style.display = "none";
   cameraVideo.style.display     = "block";
@@ -713,7 +671,6 @@ cameraLink.addEventListener("click", async () => {
 
 closeIdentifier.addEventListener("click", () => {
   identifierPanel.style.display = "none";
-  unlockScroll();
   stopCamera();
   hideResultCard();
   setGlow('none');
@@ -728,7 +685,6 @@ resultScanAgain.addEventListener("click", resetScan);
 
 resultCloseBtn.addEventListener("click", () => {
   identifierPanel.style.display = "none";
-  unlockScroll();
   stopCamera();
   hideResultCard();
   inferenceCanvas.style.display = "none";
@@ -769,3 +725,23 @@ imageUploadInput.addEventListener("change", async (e) => {
   };
   img.src = URL.createObjectURL(file);
 });
+
+/* ---------------- Splash Screen ---------------- */
+(function () {
+  const splash = document.getElementById('splashScreen');
+  const enterBtn = document.getElementById('splashEnter');
+  if (!splash || !enterBtn) return;
+
+  function dismissSplash() {
+    splash.classList.add('dismissed');
+    setTimeout(() => splash.remove(), 1000);
+  }
+
+  enterBtn.addEventListener('click', dismissSplash);
+
+  setTimeout(() => {
+    splash.addEventListener('click', dismissSplash);
+  }, 3000);
+})();
+
+}); // end DOMContentLoaded
