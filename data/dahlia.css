@@ -1,0 +1,6 @@
+.dahlia-theme {
+  --primary: #d97e78;       /* lighter violet — good for header gradient start */
+  --accent: #eab7b3; /* deep purple — good for header gradient end */
+  --background-deep: #b6554e; /* very soft lavender background */
+}
+

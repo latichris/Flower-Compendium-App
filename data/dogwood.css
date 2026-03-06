@@ -1,0 +1,6 @@
+.dogwood-theme {
+  --primary: #ede7e0;       /* lighter violet — good for header gradient start */
+  --accent: #f7f3ee; /* deep purple — good for header gradient end */
+  --background-deep: #d9d2ca; /* very soft lavender background */
+}
+

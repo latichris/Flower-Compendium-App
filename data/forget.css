@@ -1,0 +1,6 @@
+.forget-theme {
+  --primary: #a3d1f0;       /* lighter violet — good for header gradient start */
+  --accent: #e3f0fa; /* deep purple — good for header gradient end */
+  --background-deep: #5ca8d1; /* very soft lavender background */
+}
+

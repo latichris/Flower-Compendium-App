@@ -1,0 +1,6 @@
+.dandelion-theme {
+  --primary: #f7f6f4;       /* lighter violet — good for header gradient start */
+  --accent: #fefdfc; /* deep purple — good for header gradient end */
+  --background-deep: #e8e6e3; /* very soft lavender background */
+}
+

@@ -1,0 +1,159 @@
+/* data/flower-base.css */
+/* Shared styling for all flower pages */
+
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&display=swap');
+
+/* --- WRAPPER --- */
+#flowerPage {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  transform: translateX(100%);
+  opacity: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  transition: none;
+}
+
+/* slide animations */
+#flowerPage.active.slide-in {
+  animation: flowerSlideIn 0.45s ease forwards;
+}
+#flowerPage.active.slide-out {
+  animation: flowerSlideOut 0.45s ease forwards;
+}
+
+@keyframes flowerSlideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+@keyframes flowerSlideOut {
+  from { transform: translateX(0); opacity: 1; }
+  to   { transform: translateX(100%); opacity: 0; }
+}
+
+/* --- INNER BACKGROUND --- */
+.flower-inner {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 32px;
+  background-color: var(--background-deep);
+  background-image: radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px);
+  background-size: 32px 32px;
+  box-sizing: border-box;
+  font-family: "Cormorant Garamond", serif;
+  color: #333;
+}
+
+/* --- HEADER --- */
+.flower-header {
+  width: 100%;
+  max-width: 760px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: linear-gradient(to right, var(--primary), var(--accent));
+  border-radius: 0 0 14px 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  margin-bottom: 12px;
+}
+
+.back-button {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: #333;
+  cursor: pointer;
+}
+
+.flower-info { flex: 1; margin-left: 6px; }
+.flower-info h1 {
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+.flower-info p {
+  font-style: italic;
+  font-size: 0.8rem;
+  color: #444;
+  margin-bottom: 4px;
+}
+
+.tags { margin-top: 4px; }
+.tag {
+  display: inline-block;
+  background: rgba(255,255,255,0.6);
+  border-radius: 12px;
+  padding: 3px 8px;
+  font-size: 0.7rem;
+  margin-right: 4px;
+}
+
+.flower-image img {
+  width: 90px;
+  height: 90px;
+  object-fit: contain;
+  transform: translate(-45px, -25px);
+}
+
+/* --- CONTENT SECTIONS --- */
+.card {
+  background: #fff;
+  width: 92%;
+  max-width: 700px;
+  margin: 12px auto;
+  padding: 14px 16px;
+  border-radius: 14px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  line-height: 1.6;
+}
+
+.card h2 {
+  font-size: 1rem;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+.card p {
+  font-size: 0.9rem;
+  color: #2f2f2f;
+}
+
+/* --- MEANING --- */
+.meaning {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px 14px;
+  width: calc(50% - 8px);
+  margin: 0 auto 16px auto;
+}
+.meaning p {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #333;
+}
+
+/* --- GALLERY --- */
+.gallery-images {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.gallery-images img {
+  width: calc(50% - 8px);
+  border-radius: 10px;
+  object-fit: cover;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 600px) {
+  .flower-info h1 { font-size: 1rem; }
+  .flower-info p { font-size: 0.78rem; }
+  .flower-image img { width: 75px; height: 75px; transform: translate(-40px, -16px); }
+  .card { width: 90%; padding: 12px; }
+}

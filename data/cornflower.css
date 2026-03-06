@@ -1,0 +1,6 @@
+.cornflower-theme {
+  --primary: #a8c7f2;       /* lighter violet — good for header gradient start */
+  --accent: #e7ebf8; /* deep purple — good for header gradient end */
+  --background-deep: #6b9fe0; /* very soft lavender background */
+}
+

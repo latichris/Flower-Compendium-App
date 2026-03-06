@@ -1,0 +1,6 @@
+.daffodil-theme {
+  --primary: #e3e1dd;       /* lighter violet — good for header gradient start */
+  --accent: #f7f6f3; /* deep purple — good for header gradient end */
+  --background-deep: #c8c5c0; /* very soft lavender background */
+}
+

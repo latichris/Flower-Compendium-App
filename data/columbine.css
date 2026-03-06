@@ -1,0 +1,6 @@
+.columbine-theme {
+  --primary: #cfc0e8;       /* lighter violet — good for header gradient start */
+  --accent: #ece6f6; /* deep purple — good for header gradient end */
+  --background-deep: #a99dd1; /* very soft lavender background */
+}
+

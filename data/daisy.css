@@ -1,0 +1,6 @@
+.daisy-theme {
+  --primary: #f1f0ec;       /* lighter violet — good for header gradient start */
+  --accent: #fbfaf8; /* deep purple — good for header gradient end */
+  --background-deep: #dbd9d3; /* very soft lavender background */
+}
+

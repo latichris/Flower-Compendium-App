@@ -1,0 +1,6 @@
+.crocus-theme {
+  --primary: #d2c3ee;       /* lighter violet — good for header gradient start */
+  --accent: #eee8f8; /* deep purple — good for header gradient end */
+  --background-deep: #b29dda; /* very soft lavender background */
+}
+

@@ -1,0 +1,6 @@
+.foxglove-theme {
+  --primary: #f1bfc5;       /* lighter violet — good for header gradient start */
+  --accent: #f8e1e4; /* deep purple — good for header gradient end */
+  --background-deep: #e4949d; /* very soft lavender background */
+}
+
