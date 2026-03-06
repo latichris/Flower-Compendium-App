@@ -10,8 +10,10 @@ function toggleMenu() {
   const sidebar = document.getElementById('sidebar');
   const overlay = document.getElementById('overlay');
   if (!sidebar || !overlay) return;
+  const isOpening = !sidebar.classList.contains('active');
   sidebar.classList.toggle('active');
   overlay.classList.toggle('active');
+  document.body.classList.toggle('locked', isOpening);
 }
 
 /* ---------------- Filter Options ---------------- */
@@ -182,7 +184,10 @@ if (menuIconEl) {
     } else {
       toggleMenu();
       const overlay = document.getElementById('overlay');
-      if (overlay) overlay.addEventListener('click', toggleMenu);
+      if (overlay) overlay.addEventListener('click', () => {
+        toggleMenu();
+        document.body.classList.remove('locked');
+      });
     }
   };
 }
@@ -352,6 +357,7 @@ async function showFlowerContent(htmlString, flowerName) {
 
   // Always raise flower page above identifier panel when opened
   flowerPage.style.zIndex = '10002';
+  document.body.classList.add('locked');
 
   void flowerPage.offsetWidth;
   flowerPage.classList.add('active', 'slide-in');
@@ -369,6 +375,7 @@ async function showFlowerContent(htmlString, flowerName) {
         flowerPage.style.zIndex = ''; // reset — goes back behind identifier panel
         if (topbar) topbar.style.zIndex = '';
         if (catalogue) catalogue.style.visibility = 'visible';
+        document.body.classList.remove('locked');
       }, 450);
     }, { once: true });
   }
@@ -434,7 +441,7 @@ function fadeAudio(targetVolume, callback) {
 toggleMusicBtn.addEventListener("click", () => {
   if (!musicOn) {
     musicOn = true;
-    toggleMusicBtn.textContent = "Mute music…";
+    toggleMusicBtn.textContent = "Mute music";
     music.currentTime = 0;
     music.play().then(() => { fadeAudio(1); }).catch(() => {
       document.body.addEventListener("click", userStart);
@@ -442,7 +449,7 @@ toggleMusicBtn.addEventListener("click", () => {
   } else {
     fadeAudio(0, () => { music.pause(); music.currentTime = 0; });
     musicOn = false;
-    toggleMusicBtn.textContent = "Play music…";
+    toggleMusicBtn.textContent = "Play music";
   }
 });
 
@@ -450,7 +457,7 @@ function userStart() {
   music.play();
   fadeAudio(1);
   musicOn = true;
-  toggleMusicBtn.textContent = "Mute music…";
+  toggleMusicBtn.textContent = "Mute music";
   document.body.removeEventListener("click", userStart);
 }
 
@@ -656,6 +663,7 @@ async function inferenceLoop() {
 
 cameraLink.addEventListener("click", async () => {
   identifierPanel.style.display = "flex";
+  document.body.classList.add('locked');
   hideResultCard();
   inferenceCanvas.style.display = "none";
   cameraVideo.style.display     = "block";
@@ -667,6 +675,7 @@ cameraLink.addEventListener("click", async () => {
 
 closeIdentifier.addEventListener("click", () => {
   identifierPanel.style.display = "none";
+  document.body.classList.remove('locked');
   stopCamera();
   hideResultCard();
   setGlow('none');
@@ -681,6 +690,7 @@ resultScanAgain.addEventListener("click", resetScan);
 
 resultCloseBtn.addEventListener("click", () => {
   identifierPanel.style.display = "none";
+  document.body.classList.remove('locked');
   stopCamera();
   hideResultCard();
   inferenceCanvas.style.display = "none";
@@ -721,25 +731,3 @@ imageUploadInput.addEventListener("change", async (e) => {
   };
   img.src = URL.createObjectURL(file);
 });
-
-
-
-
-(function () {
-  const splash = document.getElementById('splashScreen');
-  const enterBtn = document.getElementById('splashEnter');
-  if (!splash || !enterBtn) return;
-
-  function dismissSplash() {
-    splash.classList.add('dismissed');
-    // Remove from DOM after transition so it can't interfere
-    setTimeout(() => splash.remove(), 1000);
-  }
-
-  enterBtn.addEventListener('click', dismissSplash);
-
-  // Also allow tapping anywhere after a delay (feels more natural on mobile)
-  setTimeout(() => {
-    splash.addEventListener('click', dismissSplash);
-  }, 3000);
-})();z

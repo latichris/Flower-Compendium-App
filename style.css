@@ -656,3 +656,10 @@ hr { border: none; height: 1px; background-color: #e5d8c8; margin: 12px 0; }
 .flower-page.active { left: 0; }
 
 body.transitioning main { opacity: 0.3; transition: opacity 0.3s ease; }
+
+
+
+body.locked {
+  overflow: hidden;
+  touch-action: none;
+}
