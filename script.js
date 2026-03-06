@@ -9,15 +9,17 @@ const catalogue = document.querySelector('.catalogue');
 let savedScrollY = 0;
 
 function lockScroll() {
-  savedScrollY = window.scrollY;
+  savedScrollY = window.scrollY || document.documentElement.scrollTop;
   document.body.style.top = `-${savedScrollY}px`;
   document.body.classList.add('locked');
 }
 
 function unlockScroll() {
+  const scrollY = parseInt(document.body.style.top || '0') * -1;
   document.body.classList.remove('locked');
   document.body.style.top = '';
-  window.scrollTo(0, savedScrollY);
+  window.scrollTo(0, scrollY);
+  savedScrollY = scrollY;
 }
 
 /* ---------------- Sidebar ---------------- */
@@ -29,6 +31,19 @@ function toggleMenu() {
   sidebar.classList.toggle('active');
   overlay.classList.toggle('active');
   if (isOpening) lockScroll(); else unlockScroll();
+}
+
+// Overlay click always closes sidebar cleanly
+const sidebarOverlay = document.getElementById('overlay');
+if (sidebarOverlay) {
+  sidebarOverlay.addEventListener('click', () => {
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar && sidebar.classList.contains('active')) {
+      sidebar.classList.remove('active');
+      sidebarOverlay.classList.remove('active');
+      unlockScroll();
+    }
+  });
 }
 
 /* ---------------- Filter Options ---------------- */
