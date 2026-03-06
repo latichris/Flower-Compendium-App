@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Flower Compendium</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
+</head>
+
+<body>
+
+  <audio id="bgMusic" src="Home.mp3" preload="auto" loop></audio>
+
+  <!-- Replace your identifierPanel div in index.html with this -->
+
+<div id="identifierPanel" class="identifier-panel">
+
+  <!-- Top 70%: camera area -->
+  <div class="identifier-camera-area">
+    <video id="cameraStream" autoplay playsinline></video>
+    <canvas id="inferenceCanvas" width="224" height="224"></canvas>
+    <div id="cameraGlow" class="camera-glow"></div>
+    <button id="closeIdentifier" class="close-identifier">Close</button>
+  </div>
+
+  <!-- Bottom 30%: scanning UI -->
+  <div class="identifier-bottom-bar">
+    <div id="scanHint" class="scan-hint-bar">Point the camera at a flower 🌸</div>
+    <button class="image-upload-btn" id="imageUploadButton">or choose an existing photo</button>
+  </div>
+  <input type="file" id="imageUploadInput" accept="image/*" style="display:none;">
+
+  <!-- Result card — slides up to full screen on detection -->
+  <div id="resultCard" class="result-card">
+
+    <!-- Crescent top ~40% with gallery image -->
+    <div class="result-card-crescent">
+      <img id="resultGalleryImage" class="result-gallery-img" src="" alt="">
+    </div>
+
+    <!-- Content body -->
+    <div class="result-card-body">
+      <!-- Small catalogue thumbnail, overlaps crescent edge -->
+      <img id="resultCardImage" class="result-card-thumb" src="" alt="">
+
+      <div id="resultCardName" class="result-card-name">—</div>
+      <div id="resultCardConfidence" class="result-card-confidence"></div>
+
+      <button id="resultCardProfileBtn" class="result-card-profile-btn">See full profile</button>
+      <button id="resultCardScanAgain" class="result-card-scan-again">scan again</button>
+      <button id="resultCardClose" class="result-card-close">close</button>
+    </div>
+
+  </div>
+
+</div>
+
+  <!-- rest of your body content... -->
+
+<body>
+
+  <!-- Top Navigation Bar -->
+<header class="topbar">
+  <div id="menuIcon" class="menu-icon">☰</div>
+
+  <h1 class="topbar-title">Flower Compendium</h1>
+
+  <!-- Search bar (hidden initially) -->
+  <input id="topbarSearch" type="text" placeholder="Enter flower name..." style="display:none;">
+
+  <!-- Three-dot menu button -->
+  <div id="menuDots" class="menu-dots">⋮</div>
+
+  <!-- Dropdown filter menu -->
+  <div class="filter-menu" id="filterMenu">
+    <button class="filter-btn" id="filterMeaningButton">Filter by flower meaning…</button>
+    <button class="filter-btn" id="filterColourButton">Filter by flower colour…</button>
+    <button class="filter-btn" id="filterNameButton">Filter by name…</button>
+    <button class="filter-btn" id="filterResetButton">Reset filters</button>
+    <button class="filter-btn" id="toggleMusicButton">Play music</button>
+  </div>
+</header>
+
+
+
+  <!-- Sidebar (restored) -->
+  <aside id="sidebar" class="sidebar" role="navigation" aria-hidden="true">
+    <div class="sidebar-content">
+      <h2>A Victorian Flower Compendium<h2>
+      <ul class="menu-list">
+        <li id="compendiumLink">🌸 Flower Catalogue</li>
+        <li id="bouquetLink">💐 Bouquet Catalogue</li>
+        <li id="cameraLink">📷 Flower Identifier</li>
+      </ul>
+      <hr>
+      <ul class="menu-list">
+        <li>⚙️ Settings</li>
+        <li>❓ Help & Feedback</li>
+        <li>❤️ Support Me</li>
+      </ul>
+    </div>
+  </aside>
+
+  <!-- Overlay for sidebar -->
+  <div id="overlay" class="overlay" aria-hidden="true"></div>
+
+  <!-- Main Content -->
+  <main class="catalogue" role="main">
+    <!-- Amaryllis -->
+    <div class="flower-card amaryllis" data-flower="amaryllis" data-meaning="virtues" data-colour="red" data-colour="white" tabindex="0" role="link" aria-label="Open Amaryllis details">
+      <div class="flower-info">
+        <h2 class="flower-name">Amaryllis</h2>
+        <p class="flower-scientific"><i>Hippeastrum</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/amaryllis.png" alt="Amaryllis" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Anemone -->
+    <div class="flower-card anemone" data-flower="anemone" data-meaning="love" data-colour="orange" data-colour="red" data-colour="white" data-colour="purple" tabindex="0" role="link" aria-label="Open Anemone details">
+      <div class="flower-info">
+        <h2 class="flower-name">Anemone</h2>
+        <p class="flower-scientific"><i>Anemone</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/anemone.png" alt="Anemone" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Aster-->
+    <div class="flower-card aster" data-flower="aster" data-meaning="virtues" data-colour="purple" tabindex="0" role="link" aria-label="Open Aster details">
+      <div class="flower-info">
+        <h2 class="flower-name">Aster</h2>
+        <p class="flower-scientific"><i>Symphyotrichum</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/aster.png" alt="Aster" class="flower-image">
+      </div>
+    </div>
+    
+    <!-- Azalea-->
+    <div class="flower-card azalea" data-flower="azalea" data-meaning="virtues" data-colour="pink" data-colour="orange" data-colour="white" tabindex="0" role="link" aria-label="Open Azalea details">
+      <div class="flower-info">
+        <h2 class="flower-name">Azalea</h2>
+        <p class="flower-scientific"><i>Rhododendron</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/azalea.png" alt="Azalea" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Baby's Breath-->
+    <div class="flower-card babysbreath" data-flower="babysbreath" data-meaning="virtues" data-colour="white" tabindex="0" role="link" aria-label="Open Baby's Breath details">
+      <div class="flower-info">
+        <h2 class="flower-name">Baby's Breath</h2>
+        <p class="flower-scientific"><i>Gypsophila</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/babysbreath.png" alt="Baby's Breath" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Begonia-->
+    <div class="flower-card begonia" data-flower="begonia" data-meaning="friendship" data-colour="pink" data-colour="orange" data-colour="red" tabindex="0" role="link" aria-label="Open Begonia details">
+      <div class="flower-info">
+        <h2 class="flower-name">Begonia</h2>
+        <p class="flower-scientific"><i>Begonia</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/begonia.png" alt="Begonia" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Buttercup-->
+    <div class="flower-card buttercup" data-flower="buttercup" data-meaning="beauty" data-colour="yellow" tabindex="0" role="link" aria-label="Open Buttercup details">
+      <div class="flower-info">
+        <h2 class="flower-name">Buttercup</h2>
+        <p class="flower-scientific"><i>Ranunculus</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/buttercup.png" alt="Buttercup" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Camellia-->
+    <div class="flower-card camellia" data-flower="camellia" data-meaning="love" data-colour="pink" data-colour="white" tabindex="0" role="link" aria-label="Open Camellia details">
+      <div class="flower-info">
+        <h2 class="flower-name">Camellia</h2>
+        <p class="flower-scientific"><i>Camellia</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/camellia.png" alt="Camellia" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Carnation-->
+    <div class="flower-card carnation" data-flower="carnation" data-meaning="love" data-meaning="friendship" data-colour="pink" data-colour="red" data-colour="white" tabindex="0" role="link" aria-label="Open Carnation details">
+      <div class="flower-info">
+        <h2 class="flower-name">Carnation</h2>
+        <p class="flower-scientific"><i> Dianthus caryophyllus</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/carnation.png" alt="Carnation" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Chrysanthemum-->
+    <div class="flower-card chrysanthemum" data-flower="chrysanthemum" data-meaning="remembrance" data-colour="yellow" data-colour="white" tabindex="0" role="link" aria-label="Open Chrysanthemum details">
+      <div class="flower-info">
+        <h2 class="flower-name">Chrysanthemum</h2>
+        <p class="flower-scientific"><i> Chrysanthemum</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/chrysanthemum.png" alt="Chrysanthemum" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Clematis-->
+    <div class="flower-card clematis" data-flower="clematis" data-meaning="wit" data-colour="purple" tabindex="0" role="link" aria-label="Open Clematis details">
+      <div class="flower-info">
+        <h2 class="flower-name">Clematis</h2>
+        <p class="flower-scientific"><i> Clematis</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/clematis.png" alt="Clematis" class="flower-image">
+      </div>
+    </div>
+    <!-- More flowers-->
+    <!-- Clover-->
+    <div class="flower-card clover" data-flower="clover" data-meaning="fate" data-colour="green" data-colour="white" tabindex="0" role="link" aria-label="Open Clover details">
+      <div class="flower-info">
+        <h2 class="flower-name">Clover</h2>
+        <p class="flower-scientific"><i> Trifolium</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/clover.png" alt="Clover" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Columbine-->
+    <div class="flower-card columbine" data-flower="columbine" data-meaning="wit" data-colour="purple" data-colour="white" data-colour="blue" tabindex="0" role="link" aria-label="Open Columbine details">
+      <div class="flower-info">
+        <h2 class="flower-name">Columbine</h2>
+        <p class="flower-scientific"><i> Foolishness</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/columbine.png" alt="Columbine" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Cornflower-->
+    <div class="flower-card cornflower" data-flower="cornflower" data-meaning="love" data-colour="blue" tabindex="0" role="link" aria-label="Open Cornflower details">
+      <div class="flower-info">
+        <h2 class="flower-name">Cornflower</h2>
+        <p class="flower-scientific"><i>  Centaurea cyanus</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/cornflower.png" alt="Cornflower" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Crocus-->
+    <div class="flower-card crocus" data-flower="crocus" data-meaning="emotions" data-colour="purple" data-colour="yellow" data-colour="white" tabindex="0" role="link" aria-label="Open Crocus details">
+      <div class="flower-info">
+        <h2 class="flower-name">Crocus</h2>
+        <p class="flower-scientific"><i> Crocus</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/crocus.png" alt="Crocus" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Daffodil-->
+    <div class="flower-card daffodil" data-flower="daffodil" data-meaning="love" data-colour="yellow" data-colour="white" tabindex="0" role="link" aria-label="Open Daffodil details">
+      <div class="flower-info">
+        <h2 class="flower-name">Daffodil</h2>
+        <p class="flower-scientific"><i> Narcissus</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/daffodil.png" alt="Daffodil" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Dahlia-->
+    <div class="flower-card dahlia" data-flower="dahlia" data-meaning="love" data-colour="pink" data-colour="red" tabindex="0" role="link" aria-label="Open Dahlia details">
+      <div class="flower-info">
+        <h2 class="flower-name">Dahlia</h2>
+        <p class="flower-scientific"><i> Dahlia</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/dahlia.png" alt="Dahlia" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Daisy-->
+    <div class="flower-card daisy" data-flower="daisy" data-meaning="virtues" data-colour="yellow" data-colour="white" tabindex="0" role="link" aria-label="Open Daisy details">
+      <div class="flower-info">
+        <h2 class="flower-name">Daisy</h2>
+        <p class="flower-scientific"><i> Bellis</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/daisy.png" alt="Daisy" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Dandelion-->
+    <div class="flower-card dandelion" data-flower="dandelion" data-meaning="fate" data-colour="white" data-colour="yellow" tabindex="0" role="link" aria-label="Open Dandelion details">
+      <div class="flower-info">
+        <h2 class="flower-name">Dandelion</h2>
+        <p class="flower-scientific"><i> Taraxacum</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/dandelion.png" alt="Dandelion" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Dogwood-->
+    <div class="flower-card dogwood" data-flower="dogwood" data-meaning="love" data-meaning="wit" data-colour="white" data-colour="pink" tabindex="0" role="link" aria-label="Open Dogwood details">
+      <div class="flower-info">
+        <h2 class="flower-name">Dogwood</h2>
+        <p class="flower-scientific"><i> Cornus</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/dogwood.png" alt="Dogwood" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Forget-->
+    <div class="flower-card forget" data-flower="forget" data-meaning="remembrance" data-colour="blue" data-colour="white" tabindex="0" role="link" aria-label="Open Forget-me-not details">
+      <div class="flower-info">
+        <h2 class="flower-name">Forget-me-not</h2>
+        <p class="flower-scientific"><i> Myosotis</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/forget.png" alt="Forget" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Foxglove-->
+    <div class="flower-card foxglove" data-flower="foxglove" data-meaning="wit" data-colour="purple" data-colour="pink" tabindex="0" role="link" aria-label="Open Foxglove details">
+      <div class="flower-info">
+        <h2 class="flower-name">Foxglove</h2>
+        <p class="flower-scientific"><i> Digitalis</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/foxglove.png" alt="Foxglove" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Gladiolus-->
+    <div class="flower-card gladiolus" data-flower="gladiolus" data-meaning="love" data-colour="red" data-colour="pink" tabindex="0" role="link" aria-label="Open Gladiolus details">
+      <div class="flower-info">
+        <h2 class="flower-name">Gladiolus</h2>
+        <p class="flower-scientific"><i> Gladiolus</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/gladiolus.png" alt="Gladiolus" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Hawthorn-->
+    <div class="flower-card hawthorn" data-flower="hawthorn" data-meaning="emotions" data-colour="pink" data-colour="white" tabindex="0" role="link" aria-label="Open Hawthorn details">
+      <div class="flower-info">
+        <h2 class="flower-name">Hawthorn</h2>
+        <p class="flower-scientific"><i> Crataegus</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/hawthorn.png" alt="Hawthorn" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Heather-->
+    <div class="flower-card heather" data-flower="heather" data-meaning="fate" data-colour="purple" data-colour="pink" tabindex="0" role="link" aria-label="Open Heather details">
+      <div class="flower-info">
+        <h2 class="flower-name">Heather</h2>
+        <p class="flower-scientific"><i> Calluna</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/heather.png" alt="Heather" class="flower-image">
+      </div>
+    </div>
+
+
+    <!-- Hellebore-->
+    <div class="flower-card hellebore" data-flower="hellebore" data-meaning="wit" data-colour="purple" data-colour="pink" data-colour="white" tabindex="0" role="link" aria-label="Open Hellebore details">
+      <div class="flower-info">
+        <h2 class="flower-name">Hellebore</h2>
+        <p class="flower-scientific"><i> Helleborus</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/hellebore.png" alt="Hellebore" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Holly-->
+    <div class="flower-card holly" data-flower="holly" data-meaning="fate" data-colour="red" data-colour="white" tabindex="0" role="link" aria-label="Open Holly details">
+      <div class="flower-info">
+        <h2 class="flower-name">Holly</h2>
+        <p class="flower-scientific"><i> Ilex</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/holly.png" alt="Holly" class="flower-image">
+      </div>
+    </div>
+
+
+    <!-- Honeysuckle-->
+    <div class="flower-card honeysuckle" data-flower="honeysuckle" data-meaning="love" data-meaning="friendship" data-colour="red" data-colour="white" data-colour="yellow" data-colour="pink" tabindex="0" role="link" aria-label="Open Honeysuckle details">
+      <div class="flower-info">
+        <h2 class="flower-name">Honeysuckle</h2>
+        <p class="flower-scientific"><i> Lonicera</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/honeysuckle.png" alt="Honeysuckle" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Hyacinth-->
+    <div class="flower-card hyacinth" data-flower="hyacinth" data-meaning="love" data-meaning="friendship" data-colour="purple" data-colour="pink" data-colour="blue" tabindex="0" role="link" aria-label="Open Hyacinth details">
+      <div class="flower-info">
+        <h2 class="flower-name">Hyacinth</h2>
+        <p class="flower-scientific"><i> Hyacinthus</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/hyacinth.png" alt="Hyacinth" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Hydrangea-->
+    <div class="flower-card hydrangea" data-flower="hydrangea" data-meaning="wit" data-colour="white" data-colour="blue" data-colour="pink" tabindex="0" role="link" aria-label="Open Hydrangea details">
+      <div class="flower-info">
+        <h2 class="flower-name">Hydrangea</h2>
+        <p class="flower-scientific"><i> Hydrangea</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/hydrangea.png" alt="Hydrangea" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Hyssop-->
+    <div class="flower-card hyssop" data-flower="hyssop" data-meaning="virtues" data-colour="blue" data-colour="pink" data-colour="white" data-colour="purple" tabindex="0" role="link" aria-label="Open Hyssop details">
+      <div class="flower-info">
+        <h2 class="flower-name">Hyssop</h2>
+        <p class="flower-scientific"><i> Hyssopus</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/hyssop.png" alt="Hyssop" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Iris-->
+    <div class="flower-card iris" data-flower="iris" data-meaning="virtues" data-colour="purple" data-colour="blue" data-colour="white" data-colour="yellow" tabindex="0" role="link" aria-label="Open Iris details">
+      <div class="flower-info">
+        <h2 class="flower-name">Iris</h2>
+        <p class="flower-scientific"><i> Iris</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/iris.png" alt="Iris" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Jasmine-->
+    <div class="flower-card jasmine" data-flower="jasmine" data-meaning="friendship" data-meaning="emotions" data-colour="white" data-colour="yellow" tabindex="0" role="link" aria-label="Open Jasmine details">
+      <div class="flower-info">
+        <h2 class="flower-name">Jasmine</h2>
+        <p class="flower-scientific"><i> Jasminum</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/jasmine.png" alt="Jasmine" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Slipper-->
+    <div class="flower-card slipper" data-flower="slipper" data-meaning="emotions" data-colour="pink" data-colour="yellow" tabindex="0" role="link" aria-label="Open Lady slipper details">
+      <div class="flower-info">
+        <h2 class="flower-name">Lady slipper</h2>
+        <p class="flower-scientific"><i> Cypripedium</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/slipper.png" alt="Slipper" class="flower-image">
+      </div>
+    </div>
+ 
+    <!-- Larkspur-->
+    <div class="flower-card larkspur" data-flower="larkspur" data-meaning="emotions" data-colour="blue" data-colour="white" data-colour="purple" tabindex="0" role="link" aria-label="Open Larkspur details">
+      <div class="flower-info">
+        <h2 class="flower-name">Larkspur</h2>
+        <p class="flower-scientific"><i> Delphinium</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/larkspur.png" alt="Larkspur" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Lavender-->
+    <div class="flower-card lavender" data-flower="lavender" data-meaning="emotions" data-colour="purple" tabindex="0" role="link" aria-label="Open Lavender details">
+      <div class="flower-info">
+        <h2 class="flower-name">Lavender</h2>
+        <p class="flower-scientific"><i> Lavandula</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/lavender.png" alt="Lavender" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Lilac-->
+    <div class="flower-card lilac" data-flower="lilac" data-meaning="love" data-meaning="remembrance" data-colour="purple" data-colour="pink" tabindex="0" role="link" aria-label="Open Lilac details">
+      <div class="flower-info">
+        <h2 class="flower-name">Lilac</h2>
+        <p class="flower-scientific"><i> Syringa</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/lilac.png" alt="Lilac" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Lily-->
+    <div class="flower-card lily" data-flower="lily" data-meaning="virtues" data-colour="white" data-colour="orange" tabindex="0" role="link" aria-label="Open Lily details">
+      <div class="flower-info">
+        <h2 class="flower-name">Lily</h2>
+        <p class="flower-scientific"><i> Lilium</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/lily.png" alt="Lily" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Valley-->
+    <div class="flower-card valley" data-flower="valley" data-meaning="emotions" data-meaning="remembrance" data-colour="white" tabindex="0" role="link" aria-label="Open Lilly of the valley details">
+      <div class="flower-info">
+        <h2 class="flower-name">Lilly of the alley</h2>
+        <p class="flower-scientific"><i> Convallaria</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/valley.png" alt="Valley" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Magnolia-->
+    <div class="flower-card magnolia" data-flower="magnolia" data-meaning="virtues" data-colour="purple" data-colour="pink" data-colour="white" tabindex="0" role="link" aria-label="Open Magnolia details">
+      <div class="flower-info">
+        <h2 class="flower-name">Magnolia</h2>
+        <p class="flower-scientific"><i> Magnolia</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/magnolia.png" alt="Magnolia" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Marigold-->
+    <div class="flower-card marigold" data-flower="marigold" data-meaning="emotions" data-meaning="remembrance" data-colour="orange" data-colour="yellow" tabindex="0" role="link" aria-label="Open Marigold details">
+      <div class="flower-info">
+        <h2 class="flower-name">Marigold</h2>
+        <p class="flower-scientific"><i> Tagetes</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/marigold.png" alt="Marigold" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Monkshood-->
+    <div class="flower-card monkshood" data-flower="monkshood" data-meaning="virtues" data-colour="blue" data-colour="purple" tabindex="0" role="link" aria-label="Open Monkshood details">
+      <div class="flower-info">
+        <h2 class="flower-name">Monkshood</h2>
+        <p class="flower-scientific"><i> Aconitum</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/monkshood.png" alt="Monkshood" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Oleander-->
+    <div class="flower-card oleander" data-flower="oleander" data-meaning="wit" data-colour="pink" tabindex="0" role="link" aria-label="Open Oleander details">
+      <div class="flower-info">
+        <h2 class="flower-name">Oleander</h2>
+        <p class="flower-scientific"><i>  Nerium oleander</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/oleander.png" alt="Oleander" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Orchid-->
+    <div class="flower-card orchid" data-flower="orchid" data-meaning="beauty" data-meaning="virtues" data-colour="white" data-colour="purple" data-colour="pink" tabindex="0" role="link" aria-label="Open Orchid details">
+      <div class="flower-info">
+        <h2 class="flower-name">Orchid</h2>
+        <p class="flower-scientific"><i> Orchis</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/orchid.png" alt="Orchid" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Pansy-->
+    <div class="flower-card pansy" data-flower="pansy" data-meaning="love" data-meaning="emotions" data-colour="purple" data-colour="blue" data-colour="white" data-colour="yellow" tabindex="0" role="link" aria-label="Open Pansy details">
+      <div class="flower-info">
+        <h2 class="flower-name">Pansy</h2>
+        <p class="flower-scientific"><i> Viola tricolor var. hortensis</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/pansy.png" alt="Pansy" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Passionflower-->
+    <div class="flower-card passionflower" data-flower="passionflower" data-meaning="virtues" data-colour="purple" data-colour="blue" data-colour="white" tabindex="0" role="link" aria-label="Open Passionflower details">
+      <div class="flower-info">
+        <h2 class="flower-name">Passionflower</h2>
+        <p class="flower-scientific"><i> Passiflora</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/passionflower.png" alt="Passionflower" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Peony-->
+    <div class="flower-card peony" data-flower="peony" data-meaning="emotions" data-colour="red" data-colour="pink" data-colour="white" tabindex="0" role="link" aria-label="Open Peony details">
+      <div class="flower-info">
+        <h2 class="flower-name">Peony</h2>
+        <p class="flower-scientific"><i> Paeonia</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/peony.png" alt="Peony" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Petunia-->
+    <div class="flower-card petunia" data-flower="petunia" data-meaning="emotions" data-colour="purple" data-colour="pink" tabindex="0" role="link" aria-label="Open Petunia details">
+      <div class="flower-info">
+        <h2 class="flower-name">Petunia</h2>
+        <p class="flower-scientific"><i> Petunia</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/petunia.png" alt="Petunia" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Poppy-->
+    <div class="flower-card poppy" data-flower="poppy" data-meaning="remembrance" data-colour="orange" data-colour="red" tabindex="0" role="link" aria-label="Open Poppy details">
+      <div class="flower-info">
+        <h2 class="flower-name">Poppy</h2>
+        <p class="flower-scientific"><i> Papaver somniferum</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/poppy.png" alt="Poppy" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Rose-->
+    <div class="flower-card rose" data-flower="rose" data-meaning="love" data-colour="pink" data-colour="red" tabindex="0" role="link" aria-label="Open Rose details">
+      <div class="flower-info">
+        <h2 class="flower-name">Rose</h2>
+        <p class="flower-scientific"><i> Rosa</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/rose.png" alt="Rose" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Snapdragon-->
+    <div class="flower-card snapdragon" data-flower="snapdragon" data-meaning="wit" data-colour="red" data-colour="pink" tabindex="0" role="link" aria-label="Open Snapdragon details">
+      <div class="flower-info">
+        <h2 class="flower-name">Snapdragon</h2>
+        <p class="flower-scientific"><i> Antirrhinum</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/snapdragon.png" alt="Snapdragon" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Snowdrop-->
+    <div class="flower-card snowdrop" data-flower="snowdrop" data-meaning="friendship" data-meaning="emotions" data-colour="white" tabindex="0" role="link" aria-label="Open Snowdrop details">
+      <div class="flower-info">
+        <h2 class="flower-name">Snowdrop</h2>
+        <p class="flower-scientific"><i> Galanthus</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/snowdrop.png" alt="Snowdrop" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Sunflower-->
+    <div class="flower-card sunflower" data-flower="sunflower" data-meaning="wit" data-colour="yellow" tabindex="0" role="link" aria-label="Open Sunflower details">
+      <div class="flower-info">
+        <h2 class="flower-name">Sunflower</h2>
+        <p class="flower-scientific"><i> Helianthus</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/sunflower.png" alt="Sunflower" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Sweetpea-->
+    <div class="flower-card sweetpea" data-flower="sweetpea" data-meaning="friendship" data-colour="pink" data-colour="purple" tabindex="0" role="link" aria-label="Open Sweetpea details">
+      <div class="flower-info">
+        <h2 class="flower-name">Sweet pea</h2>
+        <p class="flower-scientific"><i> Lathyrus odoratus</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/sweetpea.png" alt="Sweetpea" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Sweetwilliam-->
+    <div class="flower-card sweetwilliam" data-flower="sweetwilliam" data-meaning="beauty" data-meaning="virtues" data-colour="red" data-colour="pink" tabindex="0" role="link" aria-label="Open Sweetwilliam details">
+      <div class="flower-info">
+        <h2 class="flower-name">Sweet William</h2>
+        <p class="flower-scientific"><i> Dianthus barbatus</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/sweetwilliam.png" alt="Sweetwilliam" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Tulip-->
+    <div class="flower-card tulip" data-flower="tulip" data-meaning="love" data-colour="purple" data-colour="white" data-colour="red" data-colour="pink" data-colour="yellow" tabindex="0" role="link" aria-label="Open Tulip details">
+      <div class="flower-info">
+        <h2 class="flower-name">Tulip</h2>
+        <p class="flower-scientific"><i> Tulipa</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/tulip.png" alt="Tulip" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Violet-->
+    <div class="flower-card violet" data-flower="violet" data-meaning="virtues" data-colour="purple" data-colour="white" tabindex="0" role="link" aria-label="Open Violet details">
+      <div class="flower-info">
+        <h2 class="flower-name">Violet</h2>
+        <p class="flower-scientific"><i> Viola odorata</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/violet.png" alt="Violet" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Yarrow-->
+    <div class="flower-card yarrow" data-flower="yarrow" data-meaning="love" data-colour="yellow" data-colour="white" tabindex="0" role="link" aria-label="Open Yarrow details">
+      <div class="flower-info">
+        <h2 class="flower-name">Yarrow</h2>
+        <p class="flower-scientific"><i> Achillea</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/yarrow.png" alt="Yarrow" class="flower-image">
+      </div>
+    </div>
+
+    <!-- Zinnia-->
+    <div class="flower-card zinnia" data-flower="zinnia" data-meaning="friendship" data-colour="orange" data-colour="red" data-colour="pink" tabindex="0" role="link" aria-label="Open Zinnia details">
+      <div class="flower-info">
+        <h2 class="flower-name">Zinnia</h2>
+        <p class="flower-scientific"><i> Zinnia</i></p>
+      </div>
+      <div class="flower-image-container">
+        <img src="images/zinnia.png" alt="Zinnia" class="flower-image">
+      </div>
+    </div>
+
+  </main>
+
+
+
+
+
+  <!-- Flower Info Page (slide-in container) -->
+  <div class="flower-page" id="flowerPage" aria-hidden="true"></div>
+
+  
+
+    <style>
+    /* fallback template styles (keeps the same look if fetch blocked) */
+    .flower-detail {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .flower-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 16px 20px;
+      color: #fff;
+      background-color: #ff9e73;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .flower-header h2 {
+      font-weight: 500;
+      letter-spacing: 0.5px;
+    }
+    .back-button {
+      background: none;
+      border: none;
+      font-size: 1.1rem;
+      color: #fff;
+      cursor: pointer;
+    }
+    .flower-content {
+      padding: 20px;
+      width: 100%;
+      max-width: 500px;
+    }
+    .info-box {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      margin-bottom: 20px;
+    }
+    .flower-images {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    .flower-images img {
+      width: 45%;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    </style>
+  </template>
+
+
+
+<!-- Bottom Sheet Filter Panel -->
+<div id="bottomSheetOverlay" class="bottom-sheet-overlay"></div>
+
+<div id="bottomSheet" class="bottom-sheet">
+
+  <div class="bottom-sheet-header">
+    <h3 id="bottomSheetTitle">Filter</h3>
+  </div>
+
+  <div class="bottom-sheet-options" id="bottomSheetOptions">
+    <!-- JS fills this -->
+  </div>
+
+  <div class="bottom-sheet-actions">
+    <button id="bottomSheetApply" class="bottom-sheet-apply">Apply</button>
+  </div>
+
+</div>
+
+
+
+  <script src="script.js"></script>
+
+
+</body>
+</html>
