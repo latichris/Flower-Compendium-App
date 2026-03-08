@@ -406,7 +406,7 @@ const LOADING_MESSAGES = [
   "Planting some flowers…",
   "Hearing the latest tea from the hollies…",
   "The roses are being dramatic again…",
-  "Asking the Jasmines to cheer me up…",
+  "Asking the jasmines to cheer me up…",
   "Hiding from the bees…",
   "Watering the garden…",
   "Arranging the bouquets…",
@@ -433,7 +433,7 @@ function startLoadingMessages() {
       textEl.textContent = LOADING_MESSAGES[next];
       textEl.classList.remove('fade-out');
     }, 400);
-  }, 2500);
+  }, 3500);
 }
 
 startLoadingMessages();
