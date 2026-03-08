@@ -406,12 +406,13 @@ const LOADING_MESSAGES = [
   "Planting some flowers…",
   "Hearing the latest tea from the hollies…",
   "The roses are being dramatic again…",
-  "Asking the jasmines to cheer me up…",
+  "Asking the Jasmines to cheer me up…",
   "Hiding from the bees…",
   "Watering the garden…",
   "Arranging the bouquets…",
   "Gifting tulips to Bob…",
   "Preparing some lilies for a birthday…",
+  "Waiting for them to bloom…",
 ];
 
 let loadingMsgInterval = null;
@@ -419,12 +420,17 @@ let loadingMsgInterval = null;
 function startLoadingMessages() {
   const textEl = document.querySelector('.loading-text');
   if (!textEl) return;
-  let lastIdx = 0;
-  textEl.textContent = LOADING_MESSAGES[0];
+  let lastIdx = Math.floor(Math.random() * LOADING_MESSAGES.length);
+  textEl.textContent = LOADING_MESSAGES[lastIdx];
 
   loadingMsgInterval = setInterval(() => {
     textEl.classList.add('fade-out');
     setTimeout(() => {
+      if (Math.random() < 0.01) {
+        textEl.textContent = "Fuck :3";
+        textEl.classList.remove('fade-out');
+        return;
+      }
       let next;
       do { next = Math.floor(Math.random() * LOADING_MESSAGES.length); }
       while (next === lastIdx);
@@ -432,7 +438,7 @@ function startLoadingMessages() {
       textEl.textContent = LOADING_MESSAGES[next];
       textEl.classList.remove('fade-out');
     }, 400);
-  }, 3500);
+  }, 2500);
 }
 
 startLoadingMessages();
@@ -488,7 +494,7 @@ function fadeAudio(targetVolume, callback) {
 toggleMusicBtn.addEventListener("click", () => {
   if (!musicOn) {
     musicOn = true;
-    toggleMusicBtn.textContent = "Mute music";
+    toggleMusicBtn.textContent = "Mute music…";
     music.currentTime = 0;
     music.play().then(() => { fadeAudio(1); }).catch(() => {
       document.body.addEventListener("click", userStart);
@@ -496,7 +502,7 @@ toggleMusicBtn.addEventListener("click", () => {
   } else {
     fadeAudio(0, () => { music.pause(); music.currentTime = 0; });
     musicOn = false;
-    toggleMusicBtn.textContent = "Play music";
+    toggleMusicBtn.textContent = "Play music…";
   }
 });
 
@@ -504,7 +510,7 @@ function userStart() {
   music.play();
   fadeAudio(1);
   musicOn = true;
-  toggleMusicBtn.textContent = "Mute music";
+  toggleMusicBtn.textContent = "Mute music…";
   document.body.removeEventListener("click", userStart);
 }
 
@@ -769,23 +775,5 @@ imageUploadInput.addEventListener("change", async (e) => {
   };
   img.src = URL.createObjectURL(file);
 });
-
-/* ---------------- Splash Screen ---------------- */
-(function () {
-  const splash = document.getElementById('splashScreen');
-  const enterBtn = document.getElementById('splashEnter');
-  if (!splash || !enterBtn) return;
-
-  function dismissSplash() {
-    splash.classList.add('dismissed');
-    setTimeout(() => splash.remove(), 1000);
-  }
-
-  enterBtn.addEventListener('click', dismissSplash);
-
-  setTimeout(() => {
-    splash.addEventListener('click', dismissSplash);
-  }, 3000);
-})();
 
 }); // end DOMContentLoaded
