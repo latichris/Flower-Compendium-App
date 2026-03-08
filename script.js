@@ -416,6 +416,13 @@ async function loadFlower(flowerName) {
       loadFlower(flower);
     });
   });
+
+  // Dismiss loading screen once everything is ready
+  const loadingScreen = document.getElementById('loadingScreen');
+  if (loadingScreen) {
+    loadingScreen.classList.add('hidden');
+    setTimeout(() => loadingScreen.remove(), 700);
+  }
 })();
 
 /* ---------------- Music ---------------- */
