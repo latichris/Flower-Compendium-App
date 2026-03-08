@@ -421,19 +421,22 @@ function startLoadingMessages() {
   const textEl = document.querySelector('.loading-text');
   if (!textEl) return;
   let lastIdx = Math.floor(Math.random() * LOADING_MESSAGES.length);
+  const recentIdxs = [lastIdx];
   textEl.textContent = LOADING_MESSAGES[lastIdx];
 
   loadingMsgInterval = setInterval(() => {
     textEl.classList.add('fade-out');
     setTimeout(() => {
       if (Math.random() < 0.01) {
-        textEl.textContent = "Fuck :3";
+        textEl.textContent = "fuck :3";
         textEl.classList.remove('fade-out');
         return;
       }
       let next;
       do { next = Math.floor(Math.random() * LOADING_MESSAGES.length); }
-      while (next === lastIdx);
+      while (recentIdxs.includes(next));
+      recentIdxs.push(next);
+      if (recentIdxs.length > 4) recentIdxs.shift();
       lastIdx = next;
       textEl.textContent = LOADING_MESSAGES[next];
       textEl.classList.remove('fade-out');
