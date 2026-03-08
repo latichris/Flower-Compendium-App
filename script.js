@@ -412,7 +412,6 @@ const LOADING_MESSAGES = [
   "Arranging the bouquets…",
   "Gifting tulips to Bob…",
   "Preparing some lilies for a birthday…",
-  "Waiting for them to bloom…",
 ];
 
 let loadingMsgInterval = null;
