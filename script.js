@@ -401,6 +401,43 @@ async function loadFlower(flowerName) {
   }
 }
 
+/* ---------------- Loading Messages ---------------- */
+const LOADING_MESSAGES = [
+  "Planting some flowers…",
+  "Hearing the latest tea from the hollies…",
+  "The roses are being dramatic again…",
+  "Asking the Jasmines to cheer me up…",
+  "Hiding from the bees…",
+  "Watering the garden…",
+  "Arranging the bouquets…",
+  "Gifting tulips to Bob…",
+  "Preparing some lilies for a birthday…",
+  "Waiting for them to bloom…",
+];
+
+let loadingMsgInterval = null;
+
+function startLoadingMessages() {
+  const textEl = document.querySelector('.loading-text');
+  if (!textEl) return;
+  let lastIdx = 0;
+  textEl.textContent = LOADING_MESSAGES[0];
+
+  loadingMsgInterval = setInterval(() => {
+    textEl.classList.add('fade-out');
+    setTimeout(() => {
+      let next;
+      do { next = Math.floor(Math.random() * LOADING_MESSAGES.length); }
+      while (next === lastIdx);
+      lastIdx = next;
+      textEl.textContent = LOADING_MESSAGES[next];
+      textEl.classList.remove('fade-out');
+    }, 400);
+  }, 2500);
+}
+
+startLoadingMessages();
+
 /* ---------------- Startup ---------------- */
 (async function initApp() {
   await preloadAllFlowerStyles();
@@ -420,6 +457,7 @@ async function loadFlower(flowerName) {
   // Dismiss loading screen once everything is ready
   const loadingScreen = document.getElementById('loadingScreen');
   if (loadingScreen) {
+    if (loadingMsgInterval) clearInterval(loadingMsgInterval);
     loadingScreen.classList.add('hidden');
     setTimeout(() => loadingScreen.remove(), 700);
   }
@@ -451,7 +489,7 @@ function fadeAudio(targetVolume, callback) {
 toggleMusicBtn.addEventListener("click", () => {
   if (!musicOn) {
     musicOn = true;
-    toggleMusicBtn.textContent = "Mute music…";
+    toggleMusicBtn.textContent = "Mute music";
     music.currentTime = 0;
     music.play().then(() => { fadeAudio(1); }).catch(() => {
       document.body.addEventListener("click", userStart);
@@ -459,7 +497,7 @@ toggleMusicBtn.addEventListener("click", () => {
   } else {
     fadeAudio(0, () => { music.pause(); music.currentTime = 0; });
     musicOn = false;
-    toggleMusicBtn.textContent = "Play music…";
+    toggleMusicBtn.textContent = "Play music";
   }
 });
 
@@ -467,7 +505,7 @@ function userStart() {
   music.play();
   fadeAudio(1);
   musicOn = true;
-  toggleMusicBtn.textContent = "Mute music…";
+  toggleMusicBtn.textContent = "Mute music";
   document.body.removeEventListener("click", userStart);
 }
 
