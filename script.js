@@ -251,36 +251,36 @@ if (bouquetLink) {
 }
 
 /* ---------------- Options Page ---------------- */
-const optionsPage = document.getElementById('optionsPage');
-const optionsBack = document.getElementById('optionsBack');
-const optionsLink = document.getElementById('optionsLink');
-const supportLink = document.getElementById('supportLink');
-const darkModeToggle = document.getElementById('darkModeToggle');
-const confidenceSegments = document.getElementById('confidenceSegments');
-const supportBtn = document.getElementById('supportBtn');
+const optionsPage  = document.getElementById('optionsPage');
+const optionsBack  = document.getElementById('optionsBack');
+const optionsLink  = document.getElementById('optionsLink');
+const darkModeToggle      = document.getElementById('darkModeToggle');
+const confidenceSegments  = document.getElementById('confidenceSegments');
 
-// Persist settings in localStorage
+// Persist settings
 let confidenceThreshold = parseFloat(localStorage.getItem('confidenceThreshold') || '0.75');
 const darkModeSaved = localStorage.getItem('darkMode') === 'true';
 
-// Apply saved dark mode on load
 if (darkModeSaved) {
   bodyEl.classList.add('dark-mode');
   if (darkModeToggle) darkModeToggle.checked = true;
 }
 
-// Apply saved confidence threshold on load
 if (confidenceSegments) {
   confidenceSegments.querySelectorAll('.options-segment').forEach(btn => {
     btn.classList.toggle('active', parseFloat(btn.dataset.value) === confidenceThreshold);
   });
 }
 
-function openOptionsPage() {
+function closeSidebar() {
   const sidebar = document.getElementById('sidebar');
   const overlay = document.getElementById('overlay');
   if (sidebar) sidebar.classList.remove('active');
   if (overlay) overlay.classList.remove('active');
+}
+
+function openOptionsPage() {
+  closeSidebar();
   if (optionsPage) optionsPage.classList.add('active');
 }
 
@@ -291,18 +291,6 @@ function closeOptionsPage() {
 if (optionsLink) optionsLink.addEventListener('click', openOptionsPage);
 if (optionsBack) optionsBack.addEventListener('click', closeOptionsPage);
 
-// Also wire the support sidebar link if present
-if (supportLink) {
-  supportLink.addEventListener('click', () => {
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('overlay');
-    if (sidebar) sidebar.classList.remove('active');
-    if (overlay) overlay.classList.remove('active');
-    window.open('https://ko-fi.com/chrislatinopoulos', '_blank');
-  });
-}
-
-// Dark mode toggle
 if (darkModeToggle) {
   darkModeToggle.addEventListener('change', () => {
     bodyEl.classList.toggle('dark-mode', darkModeToggle.checked);
@@ -310,7 +298,6 @@ if (darkModeToggle) {
   });
 }
 
-// Confidence threshold segments
 if (confidenceSegments) {
   confidenceSegments.querySelectorAll('.options-segment').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -322,7 +309,24 @@ if (confidenceSegments) {
   });
 }
 
-// Support button
+/* ---------------- Support Page ---------------- */
+const supportPage = document.getElementById('supportPage');
+const supportBack = document.getElementById('supportBack');
+const supportLink = document.getElementById('supportLink');
+const supportBtn  = document.getElementById('supportBtn');
+
+function openSupportPage() {
+  closeSidebar();
+  if (supportPage) supportPage.classList.add('active');
+}
+
+function closeSupportPage() {
+  if (supportPage) supportPage.classList.remove('active');
+}
+
+if (supportLink) supportLink.addEventListener('click', openSupportPage);
+if (supportBack) supportBack.addEventListener('click', closeSupportPage);
+
 if (supportBtn) {
   supportBtn.addEventListener('click', () => {
     window.open('https://ko-fi.com/chrislatinopoulos', '_blank');
@@ -541,7 +545,6 @@ startLoadingMessages();
     });
   });
 
-  // Dismiss loading screen once everything is ready
   const loadingScreen = document.getElementById('loadingScreen');
   if (loadingScreen) {
     if (loadingMsgInterval) clearInterval(loadingMsgInterval);

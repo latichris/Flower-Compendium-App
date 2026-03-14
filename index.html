@@ -66,7 +66,9 @@
   <p class="loading-text">Planting some flowers…</p>
 </div>
 
-<!-- OPTIONS PAGE — paste inside <body>, after the loadingScreen div -->
+<!-- ============================================================
+     OPTIONS PAGE
+     ============================================================ -->
 <div id="optionsPage" class="options-page">
 
   <div class="options-header">
@@ -81,10 +83,7 @@
       <div class="options-section-title">Appearance</div>
       <div class="options-card">
         <div class="options-row">
-          <div>
-            <div class="options-row-label">Dark Mode</div>
-            <div class="options-row-sub">Warm dark — easier on the eyes</div>
-          </div>
+          <div class="options-row-label">Dark Mode</div>
           <label class="options-toggle">
             <input type="checkbox" id="darkModeToggle">
             <span class="options-toggle-track"></span>
@@ -111,12 +110,6 @@
       </div>
     </div>
 
-    <!-- SUPPORT -->
-    <div class="options-section">
-      <div class="options-section-title">Support</div>
-      <button class="options-support-btn" id="supportBtn">☕ Support the Compendium</button>
-    </div>
-
     <!-- ABOUT -->
     <div class="options-section">
       <div class="options-section-title">About</div>
@@ -124,13 +117,39 @@
         <div class="options-about-title">Flower Compendium</div>
         <div class="options-about-version">A Victorian Botanical Record &nbsp;·&nbsp; ver 1.0.2</div>
         <div class="options-about-tagline">
-          "A record of blooms, their meanings &amp; the hidden language they carry."
+          "A record of blooms, their meaning &amp; their story."
         </div>
         <div class="options-credit-row"><strong>Created by</strong> Chris Latinopoulos</div>
         <div class="options-credit-row"><strong>Inspired by</strong> Floriography: An Illustrated Guide to the Victorian Language of Flowers — Jessica Roux</div>
         <div class="options-credit-row"><strong>Music</strong> Home — Toby Fox (Undertale)</div>
         <div class="options-credit-row"><strong>Identifier Dataset</strong> Flowers-299 — Bogdan Cretu, Kaggle</div>
       </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============================================================
+     SUPPORT PAGE
+     ============================================================ -->
+<div id="supportPage" class="options-page">
+
+  <div class="options-header">
+    <button class="back-button" id="supportBack">←</button>
+    <h2>Support Me</h2>
+  </div>
+
+  <div class="options-body">
+
+    <div class="options-section">
+      <div class="support-message">
+        <p>If you'd like to see more future updates or support the developer (me), consider leaving a tip!</p>
+        <p>Your support is truly appreciated &nbsp;♡</p>
+      </div>
+    </div>
+
+    <div class="options-section">
+      <button class="options-support-btn" id="supportBtn">☕ Support on Ko-fi</button>
     </div>
 
   </div>

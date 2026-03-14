@@ -726,12 +726,7 @@ hr { border: none; height: 1px; background-color: #e5d8c8; margin: 12px 0; }
 
 .flower-page.active { left: 0; }
 
-body.transitioning main { opacity: 0.3; transition: opacity 0.3s ease; }
-
-
-
-
-/* ================================================
+body.transitioning main { opacity: 0.3; transition: opacity 0.3s ease; }/* ================================================
    OPTIONS PAGE
    ================================================ */
  
@@ -1084,3 +1079,83 @@ body.dark-mode .result-card-name { color: #e8ddd5; }
 body.dark-mode .result-card-confidence { color: #8a6858; }
 body.dark-mode .result-card-scan-again { color: #8a6858; }
 body.dark-mode .result-card-close { color: #6a5048; }
+ 
+/* ================================================
+   SUPPORT MESSAGE
+   ================================================ */
+ 
+.support-message {
+  background: #fff;
+  border-radius: 16px;
+  padding: 1.4rem 1.2rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+ 
+.support-message p {
+  font-size: 1.05rem;
+  color: #4a3830;
+  line-height: 1.6;
+  font-style: italic;
+  letter-spacing: 0.02em;
+}
+ 
+/* ================================================
+   DARK MODE — FLOWER PAGE CARDS
+   ================================================ */
+ 
+body.dark-mode .flower-page {
+  background-color: #1a1410;
+}
+ 
+body.dark-mode .flower-header {
+  background: linear-gradient(to bottom, #2a1e18, #231810) !important;
+}
+ 
+body.dark-mode .flower-content .card {
+  background: #231810 !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3) !important;
+  color: #e8ddd5 !important;
+}
+ 
+body.dark-mode .flower-content .card h2 {
+  color: #e8ddd5 !important;
+}
+ 
+body.dark-mode .flower-content .card p {
+  color: #c8b8a8 !important;
+}
+ 
+body.dark-mode .flower-content .meaning.card {
+  background: #2a1e18 !important;
+  color: #e8ddd5 !important;
+}
+ 
+body.dark-mode .flower-content .gallery.card {
+  background: #231810 !important;
+}
+ 
+body.dark-mode .flower-info h1 {
+  color: #e8ddd5 !important;
+}
+ 
+body.dark-mode .flower-info p,
+body.dark-mode .flower-info .tags .tag {
+  color: #c8b8a8 !important;
+}
+ 
+body.dark-mode .tag {
+  background: rgba(255,255,255,0.08) !important;
+  color: #c8b8a8 !important;
+}
+ 
+body.dark-mode .support-message {
+  background: #231810;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+ 
+body.dark-mode .support-message p {
+  color: #c8b8a8;
+}
