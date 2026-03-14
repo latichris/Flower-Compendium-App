@@ -554,7 +554,7 @@ startLoadingMessages();
   if (loadingScreen) {
     const isFirstVisit = !sessionStorage.getItem('hasVisited');
     if (isFirstVisit) sessionStorage.setItem('hasVisited', 'true');
-    const minDisplay = isFirstVisit ? 9000 : 0;
+    const minDisplay = isFirstVisit ? 9000 : 2000;
     const elapsed = Date.now() - loadingStartTime;
     const remaining = Math.max(0, minDisplay - elapsed);
     setTimeout(() => {
