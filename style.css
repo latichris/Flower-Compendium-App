@@ -73,7 +73,7 @@ body {
   font-size: 2.5rem !important;
   color: #fff !important;
   cursor: pointer !important;
-  margin: 0.6rem 0 0 0.6rem !important;
+  margin: 0.2rem 0 0 0.6rem !important;
   padding: 0 !important;
   line-height: 1 !important;
   display: inline-block !important;
@@ -1110,9 +1110,6 @@ body.dark-mode .flower-page {
   background-color: #1a1410;
 }
  
-body.dark-mode .flower-header {
-  background: linear-gradient(to bottom, #2a1e18, #231810) !important;
-}
  
 body.dark-mode .flower-content .card {
   background: #231810 !important;
