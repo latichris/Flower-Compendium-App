@@ -99,12 +99,14 @@
         <div class="options-row" style="flex-direction: column; align-items: flex-start; gap: 0.7rem;">
           <div>
             <div class="options-row-label">Confidence Threshold</div>
-            <div class="options-row-sub">How certain before locking on a result</div>
+            <div class="options-row-sub">How certain the identifier is before locking on a result. A stricter threshold means better accuracy but the identification may take more time.</div>
           </div>
           <div class="options-segments" id="confidenceSegments">
             <button class="options-segment" data-value="0.60">Lenient</button>
             <button class="options-segment active" data-value="0.75">Balanced</button>
             <button class="options-segment" data-value="0.88">Strict</button>
+          </div>
+            <div class="options-row-sub">Note: The identifier can be wrong.</div>
           </div>
         </div>
       </div>
