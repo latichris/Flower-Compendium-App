@@ -2,6 +2,8 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
+const loadingStartTime = Date.now();
+
 const flowerPage = document.getElementById('flowerPage');
 const bodyEl = document.body;
 const topbar = document.querySelector('.topbar');
@@ -251,13 +253,12 @@ if (bouquetLink) {
 }
 
 /* ---------------- Options Page ---------------- */
-const optionsPage  = document.getElementById('optionsPage');
-const optionsBack  = document.getElementById('optionsBack');
-const optionsLink  = document.getElementById('optionsLink');
-const darkModeToggle      = document.getElementById('darkModeToggle');
-const confidenceSegments  = document.getElementById('confidenceSegments');
+const optionsPage        = document.getElementById('optionsPage');
+const optionsBack        = document.getElementById('optionsBack');
+const optionsLink        = document.getElementById('optionsLink');
+const darkModeToggle     = document.getElementById('darkModeToggle');
+const confidenceSegments = document.getElementById('confidenceSegments');
 
-// Persist settings
 let confidenceThreshold = parseFloat(localStorage.getItem('confidenceThreshold') || '0.75');
 const darkModeSaved = localStorage.getItem('darkMode') === 'true';
 
@@ -547,9 +548,14 @@ startLoadingMessages();
 
   const loadingScreen = document.getElementById('loadingScreen');
   if (loadingScreen) {
-    if (loadingMsgInterval) clearInterval(loadingMsgInterval);
-    loadingScreen.classList.add('hidden');
-    setTimeout(() => loadingScreen.remove(), 700);
+    const minDisplay = 6000;
+    const elapsed = Date.now() - loadingStartTime;
+    const remaining = Math.max(0, minDisplay - elapsed);
+    setTimeout(() => {
+      if (loadingMsgInterval) clearInterval(loadingMsgInterval);
+      loadingScreen.classList.add('hidden');
+      setTimeout(() => loadingScreen.remove(), 700);
+    }, remaining);
   }
 })();
 
