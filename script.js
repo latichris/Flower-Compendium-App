@@ -250,6 +250,85 @@ if (bouquetLink) {
   });
 }
 
+/* ---------------- Options Page ---------------- */
+const optionsPage = document.getElementById('optionsPage');
+const optionsBack = document.getElementById('optionsBack');
+const optionsLink = document.getElementById('optionsLink');
+const supportLink = document.getElementById('supportLink');
+const darkModeToggle = document.getElementById('darkModeToggle');
+const confidenceSegments = document.getElementById('confidenceSegments');
+const supportBtn = document.getElementById('supportBtn');
+
+// Persist settings in localStorage
+let confidenceThreshold = parseFloat(localStorage.getItem('confidenceThreshold') || '0.75');
+const darkModeSaved = localStorage.getItem('darkMode') === 'true';
+
+// Apply saved dark mode on load
+if (darkModeSaved) {
+  bodyEl.classList.add('dark-mode');
+  if (darkModeToggle) darkModeToggle.checked = true;
+}
+
+// Apply saved confidence threshold on load
+if (confidenceSegments) {
+  confidenceSegments.querySelectorAll('.options-segment').forEach(btn => {
+    btn.classList.toggle('active', parseFloat(btn.dataset.value) === confidenceThreshold);
+  });
+}
+
+function openOptionsPage() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('overlay');
+  if (sidebar) sidebar.classList.remove('active');
+  if (overlay) overlay.classList.remove('active');
+  if (optionsPage) optionsPage.classList.add('active');
+}
+
+function closeOptionsPage() {
+  if (optionsPage) optionsPage.classList.remove('active');
+}
+
+if (optionsLink) optionsLink.addEventListener('click', openOptionsPage);
+if (optionsBack) optionsBack.addEventListener('click', closeOptionsPage);
+
+// Also wire the support sidebar link if present
+if (supportLink) {
+  supportLink.addEventListener('click', () => {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    if (sidebar) sidebar.classList.remove('active');
+    if (overlay) overlay.classList.remove('active');
+    window.open('https://ko-fi.com/chrislatinopoulos', '_blank');
+  });
+}
+
+// Dark mode toggle
+if (darkModeToggle) {
+  darkModeToggle.addEventListener('change', () => {
+    bodyEl.classList.toggle('dark-mode', darkModeToggle.checked);
+    localStorage.setItem('darkMode', darkModeToggle.checked);
+  });
+}
+
+// Confidence threshold segments
+if (confidenceSegments) {
+  confidenceSegments.querySelectorAll('.options-segment').forEach(btn => {
+    btn.addEventListener('click', () => {
+      confidenceSegments.querySelectorAll('.options-segment').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      confidenceThreshold = parseFloat(btn.dataset.value);
+      localStorage.setItem('confidenceThreshold', confidenceThreshold);
+    });
+  });
+}
+
+// Support button
+if (supportBtn) {
+  supportBtn.addEventListener('click', () => {
+    window.open('https://ko-fi.com/chrislatinopoulos', '_blank');
+  });
+}
+
 /* ---------------- CSS Loader ---------------- */
 function loadCSS(id, href) {
   return new Promise((resolve) => {
@@ -404,14 +483,14 @@ async function loadFlower(flowerName) {
 /* ---------------- Loading Messages ---------------- */
 const LOADING_MESSAGES = [
   "Planting some flowers…",
-  "Hearing the latest tea from the hollies…",
-  "The roses are being dramatic again…",
-  "Asking the jasmines to cheer me up…",
+  "Hearing the latest tea from some hollies…",
+  "The lilacs are being dramatic again…",
+  "Asking some jasmines to cheer me up…",
   "Hiding from the bees…",
   "Watering the garden…",
   "Arranging the bouquets…",
   "Gifting tulips to Bob…",
-  "Preparing some lilies for a birthday…",
+  "Preparing some roses for her…",
   "Waiting for dogwoods to bloom…",
 ];
 
@@ -521,6 +600,16 @@ function userStart() {
  * AI FLOWER IDENTIFIER — TensorFlow.js
  *****************************************************/
 
+/* ---------------- Label → File Key Mapping ---------------- */
+const LABEL_TO_KEY = {
+  forgetmenot:     'forget',
+  gladiolas:       'gladiolus',
+  ladysslipper:    'slipper',
+  lilyofthevalley: 'valley',
+  roses:           'rose',
+  viola:           'violet',
+};
+
 let flowerModel = null;
 let flowerLabels = null;
 let cameraStream = null;
@@ -611,7 +700,8 @@ function showResultCard(top3) {
   inferenceCanvas.style.display = "block";
 
   const best = top3[0];
-  lockedFlowerName = best.flower.toLowerCase().replace(/[^a-z]/g, '');
+  const raw = best.flower.toLowerCase().replace(/[^a-z]/g, '');
+  lockedFlowerName = LABEL_TO_KEY[raw] || raw;
   const pct = (best.confidence * 100).toFixed(0);
 
   resultCardName.textContent = best.flower;
@@ -669,18 +759,18 @@ async function inferenceLoop() {
   isInferring = true;
   try {
     const top3 = await runPrediction(cameraVideo);
-    if (top3 && top3[0].confidence > 0.75) {
+    if (top3 && top3[0].confidence > confidenceThreshold) {
       setGlow('none');
       showResultCard(top3);
       isInferring = false;
       return;
-    } else if (top3 && top3[0].confidence > 0.6) {
+    } else if (top3 && top3[0].confidence > confidenceThreshold * 0.8) {
       scanHint.textContent = `Maybe ${top3[0].flower}…`;
       scanHint.className = 'scan-hint-bar tentative';
       setGlow('strong');
       lowConfidenceStreak = 0;
       noResultShown = false;
-    } else if (top3 && top3[0].confidence > 0.4) {
+    } else if (top3 && top3[0].confidence > confidenceThreshold * 0.55) {
       scanHint.textContent = `Maybe ${top3[0].flower}…`;
       scanHint.className = 'scan-hint-bar tentative';
       setGlow('tentative');

@@ -66,6 +66,76 @@
   <p class="loading-text">Planting some flowers…</p>
 </div>
 
+<!-- OPTIONS PAGE — paste inside <body>, after the loadingScreen div -->
+<div id="optionsPage" class="options-page">
+
+  <div class="options-header">
+    <button class="back-button" id="optionsBack">←</button>
+    <h2>Options</h2>
+  </div>
+
+  <div class="options-body">
+
+    <!-- APPEARANCE -->
+    <div class="options-section">
+      <div class="options-section-title">Appearance</div>
+      <div class="options-card">
+        <div class="options-row">
+          <div>
+            <div class="options-row-label">Dark Mode</div>
+            <div class="options-row-sub">Warm dark — easier on the eyes</div>
+          </div>
+          <label class="options-toggle">
+            <input type="checkbox" id="darkModeToggle">
+            <span class="options-toggle-track"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- IDENTIFIER -->
+    <div class="options-section">
+      <div class="options-section-title">Flower Identifier</div>
+      <div class="options-card">
+        <div class="options-row" style="flex-direction: column; align-items: flex-start; gap: 0.7rem;">
+          <div>
+            <div class="options-row-label">Confidence Threshold</div>
+            <div class="options-row-sub">How certain before locking on a result</div>
+          </div>
+          <div class="options-segments" id="confidenceSegments">
+            <button class="options-segment" data-value="0.60">Lenient</button>
+            <button class="options-segment active" data-value="0.75">Balanced</button>
+            <button class="options-segment" data-value="0.88">Strict</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SUPPORT -->
+    <div class="options-section">
+      <div class="options-section-title">Support</div>
+      <button class="options-support-btn" id="supportBtn">☕ Support the Compendium</button>
+    </div>
+
+    <!-- ABOUT -->
+    <div class="options-section">
+      <div class="options-section-title">About</div>
+      <div class="options-about">
+        <div class="options-about-title">Flower Compendium</div>
+        <div class="options-about-version">A Victorian Botanical Record &nbsp;·&nbsp; ver 1.0.2</div>
+        <div class="options-about-tagline">
+          "A record of blooms, their meanings &amp; the hidden language they carry."
+        </div>
+        <div class="options-credit-row"><strong>Created by</strong> Chris Latinopoulos</div>
+        <div class="options-credit-row"><strong>Inspired by</strong> Floriography: An Illustrated Guide to the Victorian Language of Flowers — Jessica Roux</div>
+        <div class="options-credit-row"><strong>Music</strong> Home — Toby Fox (Undertale)</div>
+        <div class="options-credit-row"><strong>Identifier Dataset</strong> Flowers-299 — Bogdan Cretu, Kaggle</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
   <!-- Top Navigation Bar -->
 <header class="topbar">
   <div id="menuIcon" class="menu-icon">☰</div>
@@ -101,9 +171,8 @@
       </ul>
       <hr>
       <ul class="menu-list">
-        <li>⚙️ Settings</li>
-        <li>❓ Help & Feedback</li>
-        <li>❤️ Support Me</li>
+        <li id="optionsLink">⚙️ Settings</li>
+        <li id="supportLink">❤️ Support Me</li>
       </ul>
     </div>
   </aside>
