@@ -504,9 +504,13 @@ let loadingMsgInterval = null;
 function startLoadingMessages() {
   const textEl = document.querySelector('.loading-text');
   if (!textEl) return;
+
   let lastIdx = Math.floor(Math.random() * LOADING_MESSAGES.length);
   const recentIdxs = [lastIdx];
   textEl.textContent = LOADING_MESSAGES[lastIdx];
+
+  // Fade in after a short delay to let the font load first
+  setTimeout(() => { textEl.style.opacity = '1'; }, 300);
 
   loadingMsgInterval = setInterval(() => {
     textEl.classList.add('fade-out');
@@ -548,7 +552,9 @@ startLoadingMessages();
 
   const loadingScreen = document.getElementById('loadingScreen');
   if (loadingScreen) {
-    const minDisplay = 6000;
+    const isFirstVisit = !sessionStorage.getItem('hasVisited');
+    if (isFirstVisit) sessionStorage.setItem('hasVisited', 'true');
+    const minDisplay = isFirstVisit ? 9000 : 0;
     const elapsed = Date.now() - loadingStartTime;
     const remaining = Math.max(0, minDisplay - elapsed);
     setTimeout(() => {
