@@ -409,7 +409,7 @@ async function preloadAllFlowerStyles() {
     { id: 'style-yarrow', href: 'data/yarrow.css' },
     { id: 'style-zinnia', href: 'data/zinnia.css' },
   ];
-  for (const { id, href } of cssFiles) await loadCSS(id, href);
+  await Promise.all(cssFiles.map(({ id, href }) => loadCSS(id, href)));
   console.log('✅ All flower styles loaded.');
 }
 
