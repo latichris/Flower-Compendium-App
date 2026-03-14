@@ -73,7 +73,7 @@ body {
   font-size: 2.5rem !important;
   color: #fff !important;
   cursor: pointer !important;
-  margin: 0.2rem 0 0 0.6rem !important;
+  margin: -0.2rem 0 0 0.6rem !important;
   padding: 0 !important;
   line-height: 1 !important;
   display: inline-block !important;
@@ -1134,19 +1134,7 @@ body.dark-mode .flower-content .gallery.card {
   background: #231810 !important;
 }
  
-body.dark-mode .flower-info h1 {
-  color: #e8ddd5 !important;
-}
- 
-body.dark-mode .flower-info p,
-body.dark-mode .flower-info .tags .tag {
-  color: #c8b8a8 !important;
-}
- 
-body.dark-mode .tag {
-  background: rgba(255,255,255,0.08) !important;
-  color: #c8b8a8 !important;
-}
+
  
 body.dark-mode .support-message {
   background: #231810;
