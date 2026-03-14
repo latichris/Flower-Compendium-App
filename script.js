@@ -329,7 +329,7 @@ if (supportBack) supportBack.addEventListener('click', closeSupportPage);
 
 if (supportBtn) {
   supportBtn.addEventListener('click', () => {
-    window.open('https://ko-fi.com/chrislatinopoulos', '_blank');
+    window.open('https://ko-fi.com/latichris', '_blank');
   });
 }
 
