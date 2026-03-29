@@ -885,3 +885,11 @@ imageUploadInput.addEventListener("change", async (e) => {
 });
 
 }); // end DOMContentLoaded
+
+
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/Flower-Compendium-App/service-worker.js')
+    .then(() => console.log('✅ Service worker registered'))
+    .catch(err => console.warn('SW registration failed:', err));
+}

@@ -1,0 +1,25 @@
+{
+  "name": "Flower Compendium",
+  "short_name": "Compendium",
+  "description": "A Victorian botanical record of blooms, their meaning & their story.",
+  "start_url": "/Flower-Compendium-App/",
+  "scope": "/Flower-Compendium-App/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f9f6f3",
+  "theme_color": "#f9e0d0",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
