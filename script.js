@@ -887,9 +887,15 @@ imageUploadInput.addEventListener("change", async (e) => {
 }); // end DOMContentLoaded
 
 
-
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/Flower-Compendium-App/service-worker.js')
-    .then(() => console.log('✅ Service worker registered'))
+    .then(reg => {
+      console.log('✅ Service worker registered');
+
+      // Force page to be controlled immediately
+      if (!navigator.serviceWorker.controller) {
+        window.location.reload();
+      }
+    })
     .catch(err => console.warn('SW registration failed:', err));
 }
