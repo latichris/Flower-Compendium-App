@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "io.github.latichris.twa",
+      "sha256_cert_fingerprints": [
+        "BC:1F:09:7A:FF:D3:A6:A3:D0:E4:8F:70:41:29:6D:9F:FC:9B:41:B5:B0:70:EA:0A:EF:F3:E0:E2:E8:A6:63:85"
+      ]
+    }
+  }
+]
