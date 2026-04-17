@@ -9,13 +9,60 @@ const bodyEl = document.body;
 const topbar = document.querySelector('.topbar');
 const catalogue = document.querySelector('.catalogue');
 
+/* ============================================================
+   BACK BUTTON MANAGER (History API)
+   Tracks what is currently open so the phone's back button
+   closes it instead of exiting the app.
+   ============================================================ */
+
+// Each entry in this stack is a function that closes the current layer.
+// Pushing = something opened. Popping = back button pressed.
+let backStack = [];
+
+function pushBack(closeFn) {
+  backStack.push(closeFn);
+  history.pushState({ depth: backStack.length }, '');
+}
+
+function popBack() {
+  const closeFn = backStack.pop();
+  if (closeFn) closeFn();
+}
+
+window.addEventListener('popstate', () => {
+  if (backStack.length > 0) {
+    // Consume the state we pushed — run the close handler
+    popBack();
+  }
+  // If stack is empty the browser navigates back normally → exits PWA
+});
+
+// Helper: when the user closes something via a button (not back),
+// we need to also pop the history state we pushed, to keep them in sync.
+function closeViaButton(closeFn) {
+  backStack.pop();         // remove our handler from the stack
+  closeFn();               // run the actual close logic
+  history.back();          // consume the pushed history entry
+}
+
 /* ---------------- Sidebar ---------------- */
 function toggleMenu() {
   const sidebar = document.getElementById('sidebar');
   const overlay = document.getElementById('overlay');
   if (!sidebar || !overlay) return;
+  const isOpening = !sidebar.classList.contains('active');
   sidebar.classList.toggle('active');
   overlay.classList.toggle('active');
+  if (isOpening) {
+    pushBack(closeSidebar);
+  }
+}
+
+function closeSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('overlay');
+  if (sidebar) sidebar.classList.remove('active');
+  if (overlay) overlay.classList.remove('active');
 }
 
 const sidebarOverlay = document.getElementById('overlay');
@@ -23,8 +70,7 @@ if (sidebarOverlay) {
   sidebarOverlay.addEventListener('click', () => {
     const sidebar = document.getElementById('sidebar');
     if (sidebar && sidebar.classList.contains('active')) {
-      sidebar.classList.remove('active');
-      sidebarOverlay.classList.remove('active');
+      closeViaButton(closeSidebar);
     }
   });
 }
@@ -65,6 +111,7 @@ function openBottomSheet() {
   bottomOverlay.style.opacity = "1";
   bottomOverlay.style.pointerEvents = "auto";
   filterMenu.classList.remove("active");
+  pushBack(closeBottomSheet);
 }
 
 function closeBottomSheet() {
@@ -73,7 +120,7 @@ function closeBottomSheet() {
   bottomOverlay.style.pointerEvents = "none";
 }
 
-bottomOverlay.addEventListener("click", closeBottomSheet);
+bottomOverlay.addEventListener("click", () => closeViaButton(closeBottomSheet));
 
 function renderFilterOptions(type) {
   const title = document.getElementById("bottomSheetTitle");
@@ -109,7 +156,7 @@ function applyFilters() {
 
 document.getElementById("bottomSheetApply").addEventListener("click", () => {
   applyFilters();
-  closeBottomSheet();
+  closeViaButton(closeBottomSheet);
 });
 
 document.getElementById("filterMeaningButton").addEventListener("click", () => {
@@ -129,6 +176,22 @@ document.getElementById("filterResetButton").addEventListener("click", () => {
   filterMenu.classList.remove("active");
 });
 
+/* ---------------- Filter Dots Menu ---------------- */
+// The dots dropdown is lightweight (no slide animation), so we push/pop
+// only while it's actually visible.
+let filterMenuOpen = false;
+
+function openFilterMenu() {
+  filterMenu.classList.add("active");
+  filterMenuOpen = true;
+  pushBack(closeFilterMenu);
+}
+
+function closeFilterMenu() {
+  filterMenu.classList.remove("active");
+  filterMenuOpen = false;
+}
+
 /* ---------------- Search Mode ---------------- */
 const menuIconEl = document.getElementById('menuIcon');
 const menuDotsEl = document.getElementById('menuDots');
@@ -139,7 +202,11 @@ const topbarSearchEl = document.getElementById('topbarSearch');
 let inSearchMode = false;
 
 function hideFilterMenu() {
-  if (filterMenu) filterMenu.classList.remove('active');
+  if (filterMenuOpen) {
+    closeFilterMenu();
+  } else {
+    filterMenu.classList.remove('active');
+  }
 }
 
 function enterSearchMode() {
@@ -155,6 +222,7 @@ function enterSearchMode() {
   menuIconEl.classList.add('search-back');
   topbarSearchEl.addEventListener('input', searchFilter);
   hideFilterMenu();
+  pushBack(exitSearchMode);
 }
 
 function exitSearchMode() {
@@ -193,7 +261,8 @@ function searchFilter() {
 if (menuIconEl) {
   menuIconEl.onclick = () => {
     if (inSearchMode) {
-      exitSearchMode();
+      // User tapped the ← arrow to exit search — treat as button close
+      closeViaButton(exitSearchMode);
     } else {
       toggleMenu();
     }
@@ -203,35 +272,37 @@ if (menuIconEl) {
 if (menuDotsEl) {
   menuDotsEl.onclick = (e) => {
     e.stopPropagation();
-    filterMenu.classList.toggle("active");
+    if (filterMenuOpen) {
+      closeViaButton(closeFilterMenu);
+    } else {
+      openFilterMenu();
+    }
   };
 }
 
 document.addEventListener("click", (e) => {
-  if (!filterMenu.contains(e.target) && !menuDotsEl.contains(e.target)) {
-    filterMenu.classList.remove("active");
+  if (filterMenuOpen && !filterMenu.contains(e.target) && !menuDotsEl.contains(e.target)) {
+    closeViaButton(closeFilterMenu);
   }
 });
 
 if (filterNameBtn) {
   filterNameBtn.addEventListener('click', () => {
     enterSearchMode();
-    hideFilterMenu();
+    // enterSearchMode already called hideFilterMenu, and pushBack for search
+    // but we need to also close the filter menu history entry if it was open
   });
 }
 
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && inSearchMode) exitSearchMode();
+  if (e.key === 'Escape' && inSearchMode) closeViaButton(exitSearchMode);
 });
 
 /* ---------------- Sidebar Links ---------------- */
 const compendiumLink = document.getElementById("compendiumLink");
 if (compendiumLink) {
   compendiumLink.addEventListener("click", () => {
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('overlay');
-    if (sidebar) sidebar.classList.remove('active');
-    if (overlay) overlay.classList.remove('active');
+    closeViaButton(closeSidebar);
     window.scrollTo({ top: 0, behavior: "smooth" });
   });
 }
@@ -273,16 +344,13 @@ if (confidenceSegments) {
   });
 }
 
-function closeSidebar() {
-  const sidebar = document.getElementById('sidebar');
-  const overlay = document.getElementById('overlay');
-  if (sidebar) sidebar.classList.remove('active');
-  if (overlay) overlay.classList.remove('active');
-}
-
 function openOptionsPage() {
+  // Sidebar is open when this fires — close it without touching history,
+  // then push a new entry for the options page itself.
   closeSidebar();
+  backStack.pop(); // remove the sidebar entry (sidebar closed without animation)
   if (optionsPage) optionsPage.classList.add('active');
+  pushBack(closeOptionsPage);
 }
 
 function closeOptionsPage() {
@@ -290,7 +358,7 @@ function closeOptionsPage() {
 }
 
 if (optionsLink) optionsLink.addEventListener('click', openOptionsPage);
-if (optionsBack) optionsBack.addEventListener('click', closeOptionsPage);
+if (optionsBack) optionsBack.addEventListener('click', () => closeViaButton(closeOptionsPage));
 
 if (darkModeToggle) {
   darkModeToggle.addEventListener('change', () => {
@@ -318,7 +386,9 @@ const supportBtn  = document.getElementById('supportBtn');
 
 function openSupportPage() {
   closeSidebar();
+  backStack.pop(); // remove the sidebar entry
   if (supportPage) supportPage.classList.add('active');
+  pushBack(closeSupportPage);
 }
 
 function closeSupportPage() {
@@ -326,7 +396,7 @@ function closeSupportPage() {
 }
 
 if (supportLink) supportLink.addEventListener('click', openSupportPage);
-if (supportBack) supportBack.addEventListener('click', closeSupportPage);
+if (supportBack) supportBack.addEventListener('click', () => closeViaButton(closeSupportPage));
 
 if (supportBtn) {
   supportBtn.addEventListener('click', () => {
@@ -450,22 +520,29 @@ async function showFlowerContent(htmlString, flowerName) {
   void flowerPage.offsetWidth;
   flowerPage.classList.add('active', 'slide-in');
 
+  // Push history state so back button slides this page out
+  pushBack(slideOutFlowerPage);
+
   const backBtn = flowerPage.querySelector('.back-button');
   if (backBtn) {
     backBtn.addEventListener('click', () => {
-      flowerPage.classList.remove('slide-in');
-      void flowerPage.offsetWidth;
-      flowerPage.classList.add('slide-out');
-      setTimeout(() => {
-        flowerPage.innerHTML = '';
-        flowerPage.classList.remove('active', 'slide-out');
-        flowerPage.style.backgroundColor = '';
-        flowerPage.style.zIndex = '';
-        if (topbar) topbar.style.zIndex = '';
-        if (catalogue) catalogue.style.visibility = 'visible';
-      }, 450);
+      closeViaButton(slideOutFlowerPage);
     }, { once: true });
   }
+}
+
+function slideOutFlowerPage() {
+  flowerPage.classList.remove('slide-in');
+  void flowerPage.offsetWidth;
+  flowerPage.classList.add('slide-out');
+  setTimeout(() => {
+    flowerPage.innerHTML = '';
+    flowerPage.classList.remove('active', 'slide-out');
+    flowerPage.style.backgroundColor = '';
+    flowerPage.style.zIndex = '';
+    if (topbar) topbar.style.zIndex = '';
+    if (catalogue) catalogue.style.visibility = 'visible';
+  }, 450);
 }
 
 async function loadFlower(flowerName) {
@@ -509,7 +586,6 @@ function startLoadingMessages() {
   const recentIdxs = [lastIdx];
   textEl.textContent = LOADING_MESSAGES[lastIdx];
 
-  // Fade in after a short delay to let the font load first
   setTimeout(() => { textEl.style.opacity = '1'; }, 300);
 
   loadingMsgInterval = setInterval(() => {
@@ -816,18 +892,7 @@ async function inferenceLoop() {
   setTimeout(() => { if (!isLocked) rafId = requestAnimationFrame(inferenceLoop); }, 500);
 }
 
-cameraLink.addEventListener("click", async () => {
-  identifierPanel.style.display = "flex";
-  hideResultCard();
-  inferenceCanvas.style.display = "none";
-  cameraVideo.style.display     = "block";
-  scanHint.textContent = "Point the camera at a flower 🌸";
-  await loadFlowerModel();
-  await startCamera();
-  inferenceLoop();
-});
-
-closeIdentifier.addEventListener("click", () => {
+function closeIdentifierPanel() {
   identifierPanel.style.display = "none";
   stopCamera();
   hideResultCard();
@@ -837,17 +902,27 @@ closeIdentifier.addEventListener("click", () => {
   scanHint.className = 'scan-hint-bar';
   inferenceCanvas.style.display = "none";
   cameraVideo.style.display     = "block";
-});
+}
 
-resultScanAgain.addEventListener("click", resetScan);
-
-resultCloseBtn.addEventListener("click", () => {
-  identifierPanel.style.display = "none";
-  stopCamera();
+cameraLink.addEventListener("click", async () => {
+  closeSidebar();
+  backStack.pop(); // remove the sidebar history entry
+  identifierPanel.style.display = "flex";
   hideResultCard();
   inferenceCanvas.style.display = "none";
   cameraVideo.style.display     = "block";
+  scanHint.textContent = "Point the camera at a flower 🌸";
+  pushBack(closeIdentifierPanel);
+  await loadFlowerModel();
+  await startCamera();
+  inferenceLoop();
 });
+
+closeIdentifier.addEventListener("click", () => closeViaButton(closeIdentifierPanel));
+
+resultScanAgain.addEventListener("click", resetScan);
+
+resultCloseBtn.addEventListener("click", () => closeViaButton(closeIdentifierPanel));
 
 resultProfileBtn.addEventListener("click", () => {
   if (lockedFlowerName) loadFlower(lockedFlowerName);
@@ -891,8 +966,6 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/Flower-Compendium-App/service-worker.js')
     .then(reg => {
       console.log('✅ Service worker registered');
-
-      // Force page to be controlled immediately
       if (!navigator.serviceWorker.controller) {
         window.location.reload();
       }
