@@ -34,10 +34,10 @@ function popBack() {
 
 window.addEventListener('popstate', () => {
   if (backStack.length > 0) {
-    // Consume the state we pushed — run the close handler
     popBack();
+  } else {
+    history.pushState({ twaBase: true }, '');
   }
-  // If stack is empty the browser navigates back normally → exits PWA
 });
 
 // Helper: when the user closes something via a button (not back),
