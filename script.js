@@ -1,8 +1,11 @@
 /* script.js */
 // Seed history for TWA back button compatibility
-if (history.state === null) {
-  history.replaceState({ twaBase: true }, '');
-}
+const _twaBackFix = window.ontouchend === null ? 'touchend' : 'click';
+document.addEventListener(_twaBackFix, () => {
+  if (history.state === null) {
+    history.replaceState({ twaBase: true }, '');
+  }
+}, { once: true });
 document.addEventListener('DOMContentLoaded', () => {
 
 const loadingStartTime = Date.now();
