@@ -1,5 +1,8 @@
 /* script.js */
-
+// Seed history for TWA back button compatibility
+if (history.state === null) {
+  history.replaceState({ twaBase: true }, '');
+}
 document.addEventListener('DOMContentLoaded', () => {
 
 const loadingStartTime = Date.now();
