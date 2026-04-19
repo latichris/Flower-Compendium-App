@@ -33,17 +33,18 @@ function popBack() {
   if (closeFn) closeFn();
 }
 
-// Re-seeds the history floor after everything is closed,
-// so TWA always has one entry before it considers exiting.
+// Re-seeds the history floor immediately so TWA always has
+// one entry before it considers exiting. Called at the START
+// of every close function, before any animation runs.
 function reseedFloor() {
   history.replaceState({ twaBase: true }, '');
 }
 
 window.addEventListener('popstate', () => {
   if (backStack.length > 0) {
+    // Reseed BEFORE popping so the floor exists during the close animation
+    if (backStack.length === 1) reseedFloor();
     popBack();
-    // If stack is now empty, put the floor back immediately
-    if (backStack.length === 0) reseedFloor();
   } else {
     // Already at floor — push it back so TWA never runs out of entries
     history.pushState({ twaBase: true }, '');
@@ -51,12 +52,10 @@ window.addEventListener('popstate', () => {
 });
 
 // Used when the user closes something via an in-app button (not back).
-// Runs the close logic and consumes the matching history entry.
 function closeViaButton(closeFn) {
   backStack.pop();
   closeFn();
   if (backStack.length === 0) {
-    // Stack is empty — no need to call history.back(), just reseed
     reseedFloor();
   } else {
     history.back();
@@ -77,6 +76,7 @@ function toggleMenu() {
 }
 
 function closeSidebar() {
+  reseedFloor();
   const sidebar = document.getElementById('sidebar');
   const overlay = document.getElementById('overlay');
   if (sidebar) sidebar.classList.remove('active');
@@ -133,6 +133,7 @@ function openBottomSheet() {
 }
 
 function closeBottomSheet() {
+  reseedFloor();
   bottomSheet.style.bottom = "-100%";
   bottomOverlay.style.opacity = "0";
   bottomOverlay.style.pointerEvents = "none";
@@ -204,6 +205,7 @@ function openFilterMenu() {
 }
 
 function closeFilterMenu() {
+  reseedFloor();
   filterMenu.classList.remove("active");
   filterMenuOpen = false;
 }
@@ -242,6 +244,7 @@ function enterSearchMode() {
 }
 
 function exitSearchMode() {
+  reseedFloor();
   if (!inSearchMode) return;
   inSearchMode = false;
   if (topbarTitleEl) topbarTitleEl.style.display = '';
@@ -365,6 +368,7 @@ function openOptionsPage() {
 }
 
 function closeOptionsPage() {
+  reseedFloor();
   if (optionsPage) optionsPage.classList.remove('active');
 }
 
@@ -403,6 +407,7 @@ function openSupportPage() {
 }
 
 function closeSupportPage() {
+  reseedFloor();
   if (supportPage) supportPage.classList.remove('active');
 }
 
@@ -542,6 +547,9 @@ async function showFlowerContent(htmlString, flowerName) {
 }
 
 function slideOutFlowerPage() {
+  // Reseed IMMEDIATELY so TWA finds the floor during the animation
+  reseedFloor();
+
   flowerPage.classList.remove('slide-in');
   void flowerPage.offsetWidth;
   flowerPage.classList.add('slide-out');
@@ -552,8 +560,6 @@ function slideOutFlowerPage() {
     flowerPage.style.zIndex = '';
     if (topbar) topbar.style.zIndex = '';
     if (catalogue) catalogue.style.visibility = 'visible';
-    // Reseed the floor now that we're back at the index
-    reseedFloor();
   }, 450);
 }
 
@@ -904,6 +910,7 @@ async function inferenceLoop() {
 }
 
 function closeIdentifierPanel() {
+  reseedFloor();
   identifierPanel.style.display = "none";
   stopCamera();
   hideResultCard();
