@@ -1,13 +1,5 @@
 /* script.js */
 
-// TWA back button fix — must be triggered by a real user gesture.
-const _twaBackFix = window.ontouchend === null ? 'touchend' : 'click';
-document.addEventListener(_twaBackFix, () => {
-  if (history.state === null) {
-    history.replaceState({ twaBase: true }, '');
-  }
-}, { once: true });
-
 document.addEventListener('DOMContentLoaded', () => {
 
 const loadingStartTime = Date.now();
@@ -18,49 +10,44 @@ const topbar = document.querySelector('.topbar');
 const catalogue = document.querySelector('.catalogue');
 
 /* ============================================================
-   BACK BUTTON MANAGER (History API)
-   ============================================================ */
+   BACK BUTTON MANAGER — hash-based navigation
+   TWA handles hash changes as real navigation natively,
+   so this is far more reliable than pushState in a TWA.
 
-let backStack = [];
+   When something opens  → location.hash = '#something'
+   When back is pressed  → hash clears → hashchange fires → we close it
+   When user closes via button → we clear the hash ourselves
+============================================================ */
 
-function pushBack(closeFn) {
-  backStack.push(closeFn);
-  history.pushState({ depth: backStack.length }, '');
+// What is currently open, and how to close it
+let currentLayer = null;  // { hash, closeFn }
+
+function openLayer(hash, closeFn) {
+  currentLayer = { hash, closeFn };
+  location.hash = hash;
 }
 
-function popBack() {
-  const closeFn = backStack.pop();
-  if (closeFn) closeFn();
+function closeLayer() {
+  if (!currentLayer) return;
+  const fn = currentLayer.closeFn;
+  currentLayer = null;
+  fn();
 }
 
-// Re-seeds the history floor immediately so TWA always has
-// one entry before it considers exiting. Called at the START
-// of every close function, before any animation runs.
-function reseedFloor() {
-  history.replaceState({ twaBase: true }, '');
+// Called when user taps an in-app close/back button
+function closeViaButton() {
+  if (!currentLayer) return;
+  currentLayer = null;
+  // Clear the hash without triggering hashchange
+  history.replaceState(null, '', location.pathname + location.search);
 }
 
-window.addEventListener('popstate', () => {
-  if (backStack.length > 0) {
-    // Reseed BEFORE popping so the floor exists during the close animation
-    if (backStack.length === 1) reseedFloor();
-    popBack();
-  } else {
-    // Already at floor — push it back so TWA never runs out of entries
-    history.pushState({ twaBase: true }, '');
+window.addEventListener('hashchange', () => {
+  // Hash was cleared (back button pressed) while a layer was open
+  if (!location.hash && currentLayer) {
+    closeLayer();
   }
 });
-
-// Used when the user closes something via an in-app button (not back).
-function closeViaButton(closeFn) {
-  backStack.pop();
-  closeFn();
-  if (backStack.length === 0) {
-    reseedFloor();
-  } else {
-    history.back();
-  }
-}
 
 /* ---------------- Sidebar ---------------- */
 function toggleMenu() {
@@ -71,12 +58,11 @@ function toggleMenu() {
   sidebar.classList.toggle('active');
   overlay.classList.toggle('active');
   if (isOpening) {
-    pushBack(closeSidebar);
+    openLayer('sidebar', closeSidebar);
   }
 }
 
 function closeSidebar() {
-  reseedFloor();
   const sidebar = document.getElementById('sidebar');
   const overlay = document.getElementById('overlay');
   if (sidebar) sidebar.classList.remove('active');
@@ -88,7 +74,8 @@ if (sidebarOverlay) {
   sidebarOverlay.addEventListener('click', () => {
     const sidebar = document.getElementById('sidebar');
     if (sidebar && sidebar.classList.contains('active')) {
-      closeViaButton(closeSidebar);
+      closeViaButton();
+      closeSidebar();
     }
   });
 }
@@ -129,17 +116,19 @@ function openBottomSheet() {
   bottomOverlay.style.opacity = "1";
   bottomOverlay.style.pointerEvents = "auto";
   filterMenu.classList.remove("active");
-  pushBack(closeBottomSheet);
+  openLayer('filter', closeBottomSheet);
 }
 
 function closeBottomSheet() {
-  reseedFloor();
   bottomSheet.style.bottom = "-100%";
   bottomOverlay.style.opacity = "0";
   bottomOverlay.style.pointerEvents = "none";
 }
 
-bottomOverlay.addEventListener("click", () => closeViaButton(closeBottomSheet));
+bottomOverlay.addEventListener("click", () => {
+  closeViaButton();
+  closeBottomSheet();
+});
 
 function renderFilterOptions(type) {
   const title = document.getElementById("bottomSheetTitle");
@@ -175,7 +164,8 @@ function applyFilters() {
 
 document.getElementById("bottomSheetApply").addEventListener("click", () => {
   applyFilters();
-  closeViaButton(closeBottomSheet);
+  closeViaButton();
+  closeBottomSheet();
 });
 
 document.getElementById("filterMeaningButton").addEventListener("click", () => {
@@ -201,11 +191,10 @@ let filterMenuOpen = false;
 function openFilterMenu() {
   filterMenu.classList.add("active");
   filterMenuOpen = true;
-  pushBack(closeFilterMenu);
+  openLayer('menu', closeFilterMenu);
 }
 
 function closeFilterMenu() {
-  reseedFloor();
   filterMenu.classList.remove("active");
   filterMenuOpen = false;
 }
@@ -219,14 +208,6 @@ const topbarSearchEl = document.getElementById('topbarSearch');
 
 let inSearchMode = false;
 
-function hideFilterMenu() {
-  if (filterMenuOpen) {
-    closeFilterMenu();
-  } else {
-    filterMenu.classList.remove('active');
-  }
-}
-
 function enterSearchMode() {
   if (inSearchMode) return;
   inSearchMode = true;
@@ -239,12 +220,13 @@ function enterSearchMode() {
   menuIconEl.innerHTML = '←';
   menuIconEl.classList.add('search-back');
   topbarSearchEl.addEventListener('input', searchFilter);
-  hideFilterMenu();
-  pushBack(exitSearchMode);
+  // close filter menu without touching hash, then open search layer
+  filterMenu.classList.remove('active');
+  filterMenuOpen = false;
+  openLayer('search', exitSearchMode);
 }
 
 function exitSearchMode() {
-  reseedFloor();
   if (!inSearchMode) return;
   inSearchMode = false;
   if (topbarTitleEl) topbarTitleEl.style.display = '';
@@ -280,7 +262,8 @@ function searchFilter() {
 if (menuIconEl) {
   menuIconEl.onclick = () => {
     if (inSearchMode) {
-      closeViaButton(exitSearchMode);
+      closeViaButton();
+      exitSearchMode();
     } else {
       toggleMenu();
     }
@@ -291,7 +274,8 @@ if (menuDotsEl) {
   menuDotsEl.onclick = (e) => {
     e.stopPropagation();
     if (filterMenuOpen) {
-      closeViaButton(closeFilterMenu);
+      closeViaButton();
+      closeFilterMenu();
     } else {
       openFilterMenu();
     }
@@ -300,7 +284,8 @@ if (menuDotsEl) {
 
 document.addEventListener("click", (e) => {
   if (filterMenuOpen && !filterMenu.contains(e.target) && !menuDotsEl.contains(e.target)) {
-    closeViaButton(closeFilterMenu);
+    closeViaButton();
+    closeFilterMenu();
   }
 });
 
@@ -311,14 +296,18 @@ if (filterNameBtn) {
 }
 
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && inSearchMode) closeViaButton(exitSearchMode);
+  if (e.key === 'Escape' && inSearchMode) {
+    closeViaButton();
+    exitSearchMode();
+  }
 });
 
 /* ---------------- Sidebar Links ---------------- */
 const compendiumLink = document.getElementById("compendiumLink");
 if (compendiumLink) {
   compendiumLink.addEventListener("click", () => {
-    closeViaButton(closeSidebar);
+    closeViaButton();
+    closeSidebar();
     window.scrollTo({ top: 0, behavior: "smooth" });
   });
 }
@@ -361,19 +350,21 @@ if (confidenceSegments) {
 }
 
 function openOptionsPage() {
+  // Close sidebar first without touching the hash
   closeSidebar();
-  backStack.pop();
   if (optionsPage) optionsPage.classList.add('active');
-  pushBack(closeOptionsPage);
+  openLayer('options', closeOptionsPage);
 }
 
 function closeOptionsPage() {
-  reseedFloor();
   if (optionsPage) optionsPage.classList.remove('active');
 }
 
 if (optionsLink) optionsLink.addEventListener('click', openOptionsPage);
-if (optionsBack) optionsBack.addEventListener('click', () => closeViaButton(closeOptionsPage));
+if (optionsBack) optionsBack.addEventListener('click', () => {
+  closeViaButton();
+  closeOptionsPage();
+});
 
 if (darkModeToggle) {
   darkModeToggle.addEventListener('change', () => {
@@ -401,18 +392,19 @@ const supportBtn  = document.getElementById('supportBtn');
 
 function openSupportPage() {
   closeSidebar();
-  backStack.pop();
   if (supportPage) supportPage.classList.add('active');
-  pushBack(closeSupportPage);
+  openLayer('support', closeSupportPage);
 }
 
 function closeSupportPage() {
-  reseedFloor();
   if (supportPage) supportPage.classList.remove('active');
 }
 
 if (supportLink) supportLink.addEventListener('click', openSupportPage);
-if (supportBack) supportBack.addEventListener('click', () => closeViaButton(closeSupportPage));
+if (supportBack) supportBack.addEventListener('click', () => {
+  closeViaButton();
+  closeSupportPage();
+});
 
 if (supportBtn) {
   supportBtn.addEventListener('click', () => {
@@ -536,20 +528,19 @@ async function showFlowerContent(htmlString, flowerName) {
   void flowerPage.offsetWidth;
   flowerPage.classList.add('active', 'slide-in');
 
-  pushBack(slideOutFlowerPage);
+  // Register this flower page as the current layer
+  openLayer('flower-' + flowerName, slideOutFlowerPage);
 
   const backBtn = flowerPage.querySelector('.back-button');
   if (backBtn) {
     backBtn.addEventListener('click', () => {
-      closeViaButton(slideOutFlowerPage);
+      closeViaButton();
+      slideOutFlowerPage();
     }, { once: true });
   }
 }
 
 function slideOutFlowerPage() {
-  // Reseed IMMEDIATELY so TWA finds the floor during the animation
-  reseedFloor();
-
   flowerPage.classList.remove('slide-in');
   void flowerPage.offsetWidth;
   flowerPage.classList.add('slide-out');
@@ -632,6 +623,11 @@ startLoadingMessages();
 (async function initApp() {
   await preloadAllFlowerStyles();
   console.log('🌸 App ready.');
+
+  // Clear any leftover hash from a previous session
+  if (location.hash) {
+    history.replaceState(null, '', location.pathname + location.search);
+  }
 
   const cards = document.querySelectorAll('.flower-card');
   console.log('Cards found:', cards.length);
@@ -910,7 +906,6 @@ async function inferenceLoop() {
 }
 
 function closeIdentifierPanel() {
-  reseedFloor();
   identifierPanel.style.display = "none";
   stopCamera();
   hideResultCard();
@@ -923,24 +918,30 @@ function closeIdentifierPanel() {
 }
 
 cameraLink.addEventListener("click", async () => {
+  // Close sidebar without touching hash, then open identifier layer
   closeSidebar();
-  backStack.pop();
   identifierPanel.style.display = "flex";
   hideResultCard();
   inferenceCanvas.style.display = "none";
   cameraVideo.style.display     = "block";
   scanHint.textContent = "Point the camera at a flower 🌸";
-  pushBack(closeIdentifierPanel);
+  openLayer('identifier', closeIdentifierPanel);
   await loadFlowerModel();
   await startCamera();
   inferenceLoop();
 });
 
-closeIdentifier.addEventListener("click", () => closeViaButton(closeIdentifierPanel));
+closeIdentifier.addEventListener("click", () => {
+  closeViaButton();
+  closeIdentifierPanel();
+});
 
 resultScanAgain.addEventListener("click", resetScan);
 
-resultCloseBtn.addEventListener("click", () => closeViaButton(closeIdentifierPanel));
+resultCloseBtn.addEventListener("click", () => {
+  closeViaButton();
+  closeIdentifierPanel();
+});
 
 resultProfileBtn.addEventListener("click", () => {
   if (lockedFlowerName) loadFlower(lockedFlowerName);
