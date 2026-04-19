@@ -1,11 +1,13 @@
 /* script.js */
-// Seed history for TWA back button compatibility
+
+// TWA back button fix — must be triggered by a real user gesture.
 const _twaBackFix = window.ontouchend === null ? 'touchend' : 'click';
 document.addEventListener(_twaBackFix, () => {
   if (history.state === null) {
     history.replaceState({ twaBase: true }, '');
   }
 }, { once: true });
+
 document.addEventListener('DOMContentLoaded', () => {
 
 const loadingStartTime = Date.now();
@@ -17,12 +19,8 @@ const catalogue = document.querySelector('.catalogue');
 
 /* ============================================================
    BACK BUTTON MANAGER (History API)
-   Tracks what is currently open so the phone's back button
-   closes it instead of exiting the app.
    ============================================================ */
 
-// Each entry in this stack is a function that closes the current layer.
-// Pushing = something opened. Popping = back button pressed.
 let backStack = [];
 
 function pushBack(closeFn) {
@@ -35,20 +33,34 @@ function popBack() {
   if (closeFn) closeFn();
 }
 
+// Re-seeds the history floor after everything is closed,
+// so TWA always has one entry before it considers exiting.
+function reseedFloor() {
+  history.replaceState({ twaBase: true }, '');
+}
+
 window.addEventListener('popstate', () => {
   if (backStack.length > 0) {
     popBack();
+    // If stack is now empty, put the floor back immediately
+    if (backStack.length === 0) reseedFloor();
   } else {
+    // Already at floor — push it back so TWA never runs out of entries
     history.pushState({ twaBase: true }, '');
   }
 });
 
-// Helper: when the user closes something via a button (not back),
-// we need to also pop the history state we pushed, to keep them in sync.
+// Used when the user closes something via an in-app button (not back).
+// Runs the close logic and consumes the matching history entry.
 function closeViaButton(closeFn) {
-  backStack.pop();         // remove our handler from the stack
-  closeFn();               // run the actual close logic
-  history.back();          // consume the pushed history entry
+  backStack.pop();
+  closeFn();
+  if (backStack.length === 0) {
+    // Stack is empty — no need to call history.back(), just reseed
+    reseedFloor();
+  } else {
+    history.back();
+  }
 }
 
 /* ---------------- Sidebar ---------------- */
@@ -183,8 +195,6 @@ document.getElementById("filterResetButton").addEventListener("click", () => {
 });
 
 /* ---------------- Filter Dots Menu ---------------- */
-// The dots dropdown is lightweight (no slide animation), so we push/pop
-// only while it's actually visible.
 let filterMenuOpen = false;
 
 function openFilterMenu() {
@@ -267,7 +277,6 @@ function searchFilter() {
 if (menuIconEl) {
   menuIconEl.onclick = () => {
     if (inSearchMode) {
-      // User tapped the ← arrow to exit search — treat as button close
       closeViaButton(exitSearchMode);
     } else {
       toggleMenu();
@@ -295,8 +304,6 @@ document.addEventListener("click", (e) => {
 if (filterNameBtn) {
   filterNameBtn.addEventListener('click', () => {
     enterSearchMode();
-    // enterSearchMode already called hideFilterMenu, and pushBack for search
-    // but we need to also close the filter menu history entry if it was open
   });
 }
 
@@ -351,10 +358,8 @@ if (confidenceSegments) {
 }
 
 function openOptionsPage() {
-  // Sidebar is open when this fires — close it without touching history,
-  // then push a new entry for the options page itself.
   closeSidebar();
-  backStack.pop(); // remove the sidebar entry (sidebar closed without animation)
+  backStack.pop();
   if (optionsPage) optionsPage.classList.add('active');
   pushBack(closeOptionsPage);
 }
@@ -392,7 +397,7 @@ const supportBtn  = document.getElementById('supportBtn');
 
 function openSupportPage() {
   closeSidebar();
-  backStack.pop(); // remove the sidebar entry
+  backStack.pop();
   if (supportPage) supportPage.classList.add('active');
   pushBack(closeSupportPage);
 }
@@ -526,7 +531,6 @@ async function showFlowerContent(htmlString, flowerName) {
   void flowerPage.offsetWidth;
   flowerPage.classList.add('active', 'slide-in');
 
-  // Push history state so back button slides this page out
   pushBack(slideOutFlowerPage);
 
   const backBtn = flowerPage.querySelector('.back-button');
@@ -548,6 +552,8 @@ function slideOutFlowerPage() {
     flowerPage.style.zIndex = '';
     if (topbar) topbar.style.zIndex = '';
     if (catalogue) catalogue.style.visibility = 'visible';
+    // Reseed the floor now that we're back at the index
+    reseedFloor();
   }, 450);
 }
 
@@ -697,7 +703,6 @@ function userStart() {
  * AI FLOWER IDENTIFIER — TensorFlow.js
  *****************************************************/
 
-/* ---------------- Label → File Key Mapping ---------------- */
 const LABEL_TO_KEY = {
   forgetmenot:     'forget',
   gladiolas:       'gladiolus',
@@ -912,7 +917,7 @@ function closeIdentifierPanel() {
 
 cameraLink.addEventListener("click", async () => {
   closeSidebar();
-  backStack.pop(); // remove the sidebar history entry
+  backStack.pop();
   identifierPanel.style.display = "flex";
   hideResultCard();
   inferenceCanvas.style.display = "none";
