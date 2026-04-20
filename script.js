@@ -10,43 +10,98 @@ const topbar = document.querySelector('.topbar');
 const catalogue = document.querySelector('.catalogue');
 
 /* ============================================================
-   BACK BUTTON MANAGER — hash-based navigation
-   TWA handles hash changes as real navigation natively,
-   so this is far more reliable than pushState in a TWA.
-
-   When something opens  → location.hash = '#something'
-   When back is pressed  → hash clears → hashchange fires → we close it
-   When user closes via button → we clear the hash ourselves
+   BACK BUTTON — Exit confirmation dialog
+   Instead of trying to intercept navigation per-panel,
+   we show a simple "Exit app?" dialog whenever the back
+   button is pressed. Clean, reliable, works in TWA and Chrome.
 ============================================================ */
 
-// What is currently open, and how to close it
-let currentLayer = null;  // { hash, closeFn }
+// Create the exit dialog and inject it into the page
+const exitDialog = document.createElement('div');
+exitDialog.id = 'exitDialog';
+exitDialog.style.cssText = `
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: rgba(0,0,0,0.55);
+  align-items: center;
+  justify-content: center;
+`;
+exitDialog.innerHTML = `
+  <div style="
+    background: #fff;
+    border-radius: 18px;
+    padding: 28px 24px 20px;
+    width: 280px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    text-align: center;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+  ">
+    <div style="font-size: 1.35rem; font-weight: 500; color: #3a2a1a; margin-bottom: 8px;">Leave the garden?</div>
+    <div style="font-size: 0.97rem; color: #7a6a5a; margin-bottom: 24px;">Are you sure you want to exit the compendium?</div>
+    <div style="display: flex; gap: 12px; justify-content: center;">
+      <button id="exitDialogCancel" style="
+        flex: 1;
+        padding: 11px 0;
+        border-radius: 10px;
+        border: 1.5px solid #e0d0c0;
+        background: #fff;
+        color: #7a6a5a;
+        font-size: 1rem;
+        font-family: inherit;
+        cursor: pointer;
+      ">Stay</button>
+      <button id="exitDialogConfirm" style="
+        flex: 1;
+        padding: 11px 0;
+        border-radius: 10px;
+        border: none;
+        background: #c47a90;
+        color: #fff;
+        font-size: 1rem;
+        font-family: inherit;
+        cursor: pointer;
+      ">Exit</button>
+    </div>
+  </div>
+`;
+document.body.appendChild(exitDialog);
 
-function openLayer(hash, closeFn) {
-  currentLayer = { hash, closeFn };
-  location.hash = hash;
+function showExitDialog() {
+  exitDialog.style.display = 'flex';
+  // Push another state so if they press back again it re-triggers popstate
+  history.pushState({ exitDialog: true }, '');
 }
 
-function closeLayer() {
-  if (!currentLayer) return;
-  const fn = currentLayer.closeFn;
-  currentLayer = null;
-  fn();
+function hideExitDialog() {
+  exitDialog.style.display = 'none';
 }
 
-// Called when user taps an in-app close/back button
-function closeViaButton() {
-  if (!currentLayer) return;
-  currentLayer = null;
-  // Clear the hash without triggering hashchange
-  history.replaceState(null, '', location.pathname + location.search);
-}
+document.getElementById('exitDialogCancel').addEventListener('click', () => {
+  hideExitDialog();
+  // Push the guard state back so back button works again next time
+  history.pushState({ backGuard: true }, '');
+});
 
-window.addEventListener('hashchange', () => {
-  // Hash was cleared (back button pressed) while a layer was open
-  if (!location.hash && currentLayer) {
-    closeLayer();
+document.getElementById('exitDialogConfirm').addEventListener('click', () => {
+  hideExitDialog();
+  // Actually exit — navigate back past our guard entries
+  history.go(-2);
+});
+
+// Seed the guard entry once on load
+history.pushState({ backGuard: true }, '');
+
+window.addEventListener('popstate', (e) => {
+  if (exitDialog.style.display === 'flex') {
+    // They pressed back while dialog was open — treat as "Stay"
+    hideExitDialog();
+    history.pushState({ backGuard: true }, '');
+    return;
   }
+  // Show the exit dialog and push a state to catch the next back press
+  showExitDialog();
 });
 
 /* ---------------- Sidebar ---------------- */
@@ -54,12 +109,8 @@ function toggleMenu() {
   const sidebar = document.getElementById('sidebar');
   const overlay = document.getElementById('overlay');
   if (!sidebar || !overlay) return;
-  const isOpening = !sidebar.classList.contains('active');
   sidebar.classList.toggle('active');
   overlay.classList.toggle('active');
-  if (isOpening) {
-    openLayer('sidebar', closeSidebar);
-  }
 }
 
 function closeSidebar() {
@@ -74,7 +125,6 @@ if (sidebarOverlay) {
   sidebarOverlay.addEventListener('click', () => {
     const sidebar = document.getElementById('sidebar');
     if (sidebar && sidebar.classList.contains('active')) {
-      closeViaButton();
       closeSidebar();
     }
   });
@@ -116,7 +166,6 @@ function openBottomSheet() {
   bottomOverlay.style.opacity = "1";
   bottomOverlay.style.pointerEvents = "auto";
   filterMenu.classList.remove("active");
-  openLayer('filter', closeBottomSheet);
 }
 
 function closeBottomSheet() {
@@ -125,10 +174,7 @@ function closeBottomSheet() {
   bottomOverlay.style.pointerEvents = "none";
 }
 
-bottomOverlay.addEventListener("click", () => {
-  closeViaButton();
-  closeBottomSheet();
-});
+bottomOverlay.addEventListener("click", closeBottomSheet);
 
 function renderFilterOptions(type) {
   const title = document.getElementById("bottomSheetTitle");
@@ -164,7 +210,6 @@ function applyFilters() {
 
 document.getElementById("bottomSheetApply").addEventListener("click", () => {
   applyFilters();
-  closeViaButton();
   closeBottomSheet();
 });
 
@@ -184,20 +229,6 @@ document.getElementById("filterResetButton").addEventListener("click", () => {
   document.querySelectorAll(".flower-card").forEach(card => { card.style.display = ""; });
   filterMenu.classList.remove("active");
 });
-
-/* ---------------- Filter Dots Menu ---------------- */
-let filterMenuOpen = false;
-
-function openFilterMenu() {
-  filterMenu.classList.add("active");
-  filterMenuOpen = true;
-  openLayer('menu', closeFilterMenu);
-}
-
-function closeFilterMenu() {
-  filterMenu.classList.remove("active");
-  filterMenuOpen = false;
-}
 
 /* ---------------- Search Mode ---------------- */
 const menuIconEl = document.getElementById('menuIcon');
@@ -220,10 +251,7 @@ function enterSearchMode() {
   menuIconEl.innerHTML = '←';
   menuIconEl.classList.add('search-back');
   topbarSearchEl.addEventListener('input', searchFilter);
-  // close filter menu without touching hash, then open search layer
   filterMenu.classList.remove('active');
-  filterMenuOpen = false;
-  openLayer('search', exitSearchMode);
 }
 
 function exitSearchMode() {
@@ -262,7 +290,6 @@ function searchFilter() {
 if (menuIconEl) {
   menuIconEl.onclick = () => {
     if (inSearchMode) {
-      closeViaButton();
       exitSearchMode();
     } else {
       toggleMenu();
@@ -273,40 +300,31 @@ if (menuIconEl) {
 if (menuDotsEl) {
   menuDotsEl.onclick = (e) => {
     e.stopPropagation();
-    if (filterMenuOpen) {
-      closeViaButton();
-      closeFilterMenu();
-    } else {
-      openFilterMenu();
-    }
+    filterMenu.classList.toggle("active");
   };
 }
 
 document.addEventListener("click", (e) => {
-  if (filterMenuOpen && !filterMenu.contains(e.target) && !menuDotsEl.contains(e.target)) {
-    closeViaButton();
-    closeFilterMenu();
+  if (!filterMenu.contains(e.target) && !menuDotsEl.contains(e.target)) {
+    filterMenu.classList.remove("active");
   }
 });
 
 if (filterNameBtn) {
   filterNameBtn.addEventListener('click', () => {
     enterSearchMode();
+    filterMenu.classList.remove('active');
   });
 }
 
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && inSearchMode) {
-    closeViaButton();
-    exitSearchMode();
-  }
+  if (e.key === 'Escape' && inSearchMode) exitSearchMode();
 });
 
 /* ---------------- Sidebar Links ---------------- */
 const compendiumLink = document.getElementById("compendiumLink");
 if (compendiumLink) {
   compendiumLink.addEventListener("click", () => {
-    closeViaButton();
     closeSidebar();
     window.scrollTo({ top: 0, behavior: "smooth" });
   });
@@ -350,10 +368,8 @@ if (confidenceSegments) {
 }
 
 function openOptionsPage() {
-  // Close sidebar first without touching the hash
   closeSidebar();
   if (optionsPage) optionsPage.classList.add('active');
-  openLayer('options', closeOptionsPage);
 }
 
 function closeOptionsPage() {
@@ -361,10 +377,7 @@ function closeOptionsPage() {
 }
 
 if (optionsLink) optionsLink.addEventListener('click', openOptionsPage);
-if (optionsBack) optionsBack.addEventListener('click', () => {
-  closeViaButton();
-  closeOptionsPage();
-});
+if (optionsBack) optionsBack.addEventListener('click', closeOptionsPage);
 
 if (darkModeToggle) {
   darkModeToggle.addEventListener('change', () => {
@@ -393,7 +406,6 @@ const supportBtn  = document.getElementById('supportBtn');
 function openSupportPage() {
   closeSidebar();
   if (supportPage) supportPage.classList.add('active');
-  openLayer('support', closeSupportPage);
 }
 
 function closeSupportPage() {
@@ -401,10 +413,7 @@ function closeSupportPage() {
 }
 
 if (supportLink) supportLink.addEventListener('click', openSupportPage);
-if (supportBack) supportBack.addEventListener('click', () => {
-  closeViaButton();
-  closeSupportPage();
-});
+if (supportBack) supportBack.addEventListener('click', closeSupportPage);
 
 if (supportBtn) {
   supportBtn.addEventListener('click', () => {
@@ -528,13 +537,9 @@ async function showFlowerContent(htmlString, flowerName) {
   void flowerPage.offsetWidth;
   flowerPage.classList.add('active', 'slide-in');
 
-  // Register this flower page as the current layer
-  openLayer('flower-' + flowerName, slideOutFlowerPage);
-
   const backBtn = flowerPage.querySelector('.back-button');
   if (backBtn) {
     backBtn.addEventListener('click', () => {
-      closeViaButton();
       slideOutFlowerPage();
     }, { once: true });
   }
@@ -623,11 +628,6 @@ startLoadingMessages();
 (async function initApp() {
   await preloadAllFlowerStyles();
   console.log('🌸 App ready.');
-
-  // Clear any leftover hash from a previous session
-  if (location.hash) {
-    history.replaceState(null, '', location.pathname + location.search);
-  }
 
   const cards = document.querySelectorAll('.flower-card');
   console.log('Cards found:', cards.length);
@@ -918,30 +918,20 @@ function closeIdentifierPanel() {
 }
 
 cameraLink.addEventListener("click", async () => {
-  // Close sidebar without touching hash, then open identifier layer
   closeSidebar();
   identifierPanel.style.display = "flex";
   hideResultCard();
   inferenceCanvas.style.display = "none";
   cameraVideo.style.display     = "block";
   scanHint.textContent = "Point the camera at a flower 🌸";
-  openLayer('identifier', closeIdentifierPanel);
   await loadFlowerModel();
   await startCamera();
   inferenceLoop();
 });
 
-closeIdentifier.addEventListener("click", () => {
-  closeViaButton();
-  closeIdentifierPanel();
-});
-
+closeIdentifier.addEventListener("click", closeIdentifierPanel);
 resultScanAgain.addEventListener("click", resetScan);
-
-resultCloseBtn.addEventListener("click", () => {
-  closeViaButton();
-  closeIdentifierPanel();
-});
+resultCloseBtn.addEventListener("click", closeIdentifierPanel);
 
 resultProfileBtn.addEventListener("click", () => {
   if (lockedFlowerName) loadFlower(lockedFlowerName);
