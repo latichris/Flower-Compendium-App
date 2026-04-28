@@ -9,101 +9,6 @@ const bodyEl = document.body;
 const topbar = document.querySelector('.topbar');
 const catalogue = document.querySelector('.catalogue');
 
-/* ============================================================
-   BACK BUTTON — Exit confirmation dialog
-   Instead of trying to intercept navigation per-panel,
-   we show a simple "Exit app?" dialog whenever the back
-   button is pressed. Clean, reliable, works in TWA and Chrome.
-============================================================ */
-
-// Create the exit dialog and inject it into the page
-const exitDialog = document.createElement('div');
-exitDialog.id = 'exitDialog';
-exitDialog.style.cssText = `
-  display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 99999;
-  background: rgba(0,0,0,0.55);
-  align-items: center;
-  justify-content: center;
-`;
-exitDialog.innerHTML = `
-  <div style="
-    background: #fff;
-    border-radius: 18px;
-    padding: 28px 24px 20px;
-    width: 280px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
-    text-align: center;
-    font-family: 'Cormorant Garamond', Georgia, serif;
-  ">
-    <div style="font-size: 1.35rem; font-weight: 500; color: #3a2a1a; margin-bottom: 8px;">Leave the garden?</div>
-    <div style="font-size: 0.97rem; color: #7a6a5a; margin-bottom: 24px;">Are you sure you want to exit the compendium?</div>
-    <div style="display: flex; gap: 12px; justify-content: center;">
-      <button id="exitDialogCancel" style="
-        flex: 1;
-        padding: 11px 0;
-        border-radius: 10px;
-        border: 1.5px solid #e0d0c0;
-        background: #fff;
-        color: #7a6a5a;
-        font-size: 1rem;
-        font-family: inherit;
-        cursor: pointer;
-      ">Stay</button>
-      <button id="exitDialogConfirm" style="
-        flex: 1;
-        padding: 11px 0;
-        border-radius: 10px;
-        border: none;
-        background: #c47a90;
-        color: #fff;
-        font-size: 1rem;
-        font-family: inherit;
-        cursor: pointer;
-      ">Exit</button>
-    </div>
-  </div>
-`;
-document.body.appendChild(exitDialog);
-
-function showExitDialog() {
-  exitDialog.style.display = 'flex';
-  // Push another state so if they press back again it re-triggers popstate
-  history.pushState({ exitDialog: true }, '');
-}
-
-function hideExitDialog() {
-  exitDialog.style.display = 'none';
-}
-
-document.getElementById('exitDialogCancel').addEventListener('click', () => {
-  hideExitDialog();
-  // Push the guard state back so back button works again next time
-  history.pushState({ backGuard: true }, '');
-});
-
-document.getElementById('exitDialogConfirm').addEventListener('click', () => {
-  hideExitDialog();
-  // Actually exit — navigate back past our guard entries
-  history.go(-2);
-});
-
-// Seed the guard entry once on load
-history.pushState({ backGuard: true }, '');
-
-window.addEventListener('popstate', (e) => {
-  if (exitDialog.style.display === 'flex') {
-    // They pressed back while dialog was open — treat as "Stay"
-    hideExitDialog();
-    history.pushState({ backGuard: true }, '');
-    return;
-  }
-  // Show the exit dialog and push a state to catch the next back press
-  showExitDialog();
-});
-
 /* ---------------- Sidebar ---------------- */
 function toggleMenu() {
   const sidebar = document.getElementById('sidebar');
@@ -239,6 +144,10 @@ const topbarSearchEl = document.getElementById('topbarSearch');
 
 let inSearchMode = false;
 
+function hideFilterMenu() {
+  if (filterMenu) filterMenu.classList.remove('active');
+}
+
 function enterSearchMode() {
   if (inSearchMode) return;
   inSearchMode = true;
@@ -251,7 +160,7 @@ function enterSearchMode() {
   menuIconEl.innerHTML = '←';
   menuIconEl.classList.add('search-back');
   topbarSearchEl.addEventListener('input', searchFilter);
-  filterMenu.classList.remove('active');
+  hideFilterMenu();
 }
 
 function exitSearchMode() {
@@ -313,7 +222,7 @@ document.addEventListener("click", (e) => {
 if (filterNameBtn) {
   filterNameBtn.addEventListener('click', () => {
     enterSearchMode();
-    filterMenu.classList.remove('active');
+    hideFilterMenu();
   });
 }
 
@@ -367,8 +276,15 @@ if (confidenceSegments) {
   });
 }
 
+function closeSidebarClean() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('overlay');
+  if (sidebar) sidebar.classList.remove('active');
+  if (overlay) overlay.classList.remove('active');
+}
+
 function openOptionsPage() {
-  closeSidebar();
+  closeSidebarClean();
   if (optionsPage) optionsPage.classList.add('active');
 }
 
@@ -404,7 +320,7 @@ const supportLink = document.getElementById('supportLink');
 const supportBtn  = document.getElementById('supportBtn');
 
 function openSupportPage() {
-  closeSidebar();
+  closeSidebarClean();
   if (supportPage) supportPage.classList.add('active');
 }
 
@@ -540,23 +456,19 @@ async function showFlowerContent(htmlString, flowerName) {
   const backBtn = flowerPage.querySelector('.back-button');
   if (backBtn) {
     backBtn.addEventListener('click', () => {
-      slideOutFlowerPage();
+      flowerPage.classList.remove('slide-in');
+      void flowerPage.offsetWidth;
+      flowerPage.classList.add('slide-out');
+      setTimeout(() => {
+        flowerPage.innerHTML = '';
+        flowerPage.classList.remove('active', 'slide-out');
+        flowerPage.style.backgroundColor = '';
+        flowerPage.style.zIndex = '';
+        if (topbar) topbar.style.zIndex = '';
+        if (catalogue) catalogue.style.visibility = 'visible';
+      }, 450);
     }, { once: true });
   }
-}
-
-function slideOutFlowerPage() {
-  flowerPage.classList.remove('slide-in');
-  void flowerPage.offsetWidth;
-  flowerPage.classList.add('slide-out');
-  setTimeout(() => {
-    flowerPage.innerHTML = '';
-    flowerPage.classList.remove('active', 'slide-out');
-    flowerPage.style.backgroundColor = '';
-    flowerPage.style.zIndex = '';
-    if (topbar) topbar.style.zIndex = '';
-    if (catalogue) catalogue.style.visibility = 'visible';
-  }, 450);
 }
 
 async function loadFlower(flowerName) {
@@ -918,7 +830,7 @@ function closeIdentifierPanel() {
 }
 
 cameraLink.addEventListener("click", async () => {
-  closeSidebar();
+  closeSidebarClean();
   identifierPanel.style.display = "flex";
   hideResultCard();
   inferenceCanvas.style.display = "none";
@@ -929,9 +841,27 @@ cameraLink.addEventListener("click", async () => {
   inferenceLoop();
 });
 
-closeIdentifier.addEventListener("click", closeIdentifierPanel);
+closeIdentifier.addEventListener("click", () => {
+  identifierPanel.style.display = "none";
+  stopCamera();
+  hideResultCard();
+  setGlow('none');
+  lowConfidenceStreak = 0;
+  noResultShown = false;
+  scanHint.className = 'scan-hint-bar';
+  inferenceCanvas.style.display = "none";
+  cameraVideo.style.display     = "block";
+});
+
 resultScanAgain.addEventListener("click", resetScan);
-resultCloseBtn.addEventListener("click", closeIdentifierPanel);
+
+resultCloseBtn.addEventListener("click", () => {
+  identifierPanel.style.display = "none";
+  stopCamera();
+  hideResultCard();
+  inferenceCanvas.style.display = "none";
+  cameraVideo.style.display     = "block";
+});
 
 resultProfileBtn.addEventListener("click", () => {
   if (lockedFlowerName) loadFlower(lockedFlowerName);
