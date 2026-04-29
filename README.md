@@ -47,7 +47,7 @@ The app can be installed on your device directly from the browser — no app sto
 
 An Android APK is available for direct installation without a browser.
 
-**[⬇ Download APK](https://github.com/latichris/Flower-Compendium-App/blob/main/releases/download/v1.0.0/flower-compendium.apk)**
+**[⬇ Download APK](https://github.com/latichris/Flower-Compendium-App/raw/main/releases/download/v1.0.0/flower-compendium.apk)**
 
 > Enable *Install from unknown sources* in your Android settings before installing.
 
