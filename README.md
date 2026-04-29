@@ -9,7 +9,7 @@
 
 ## About
 
-Flower Compendium is a Progressive Web App (PWA) built as a personal project — a digital botanical record inspired by the Victorian language of flowers. It catalogs 58 flowers with their historical meanings, symbolism, and botanical details, presented in an elegant illustrated style.
+Flower Compendium is a Progressive Web App (PWA) built as a personal project — a digital botanical record inspired by the Victorian language of flowers. It catalogs 59 flowers with their historical meanings, symbolism, and botanical details, presented in an elegant illustrated style.
 
 The app includes a live AI-powered flower identifier that uses your device's camera to recognise flowers in real time.
 
